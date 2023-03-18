@@ -1,0 +1,24 @@
+[project]
+name = "gaia_validators"
+version = "0.1.0"
+description = "Validatrs and types for Gaia and Ouranos"
+authors = [
+    {name = "Valentin Ambroise", email = "valentin.ambroise@outlook.com"}
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {file = "LICENSE"}
+dependencies = [
+    "pydantic~=1.10.6",
+]
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
