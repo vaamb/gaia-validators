@@ -382,7 +382,7 @@ class BaseInfoConfigPayload(ConfigPayload):
 
 class BaseInfoConfigPayloadDict(TypedDict):
     uid: str
-    data: BaseInfoConfig
+    data: BaseInfoConfigDict
 
 
 @dataclass()
