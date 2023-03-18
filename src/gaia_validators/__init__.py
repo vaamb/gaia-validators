@@ -42,6 +42,7 @@ class IDs:
 # Config
 @dataclass()
 class BaseInfoConfig:
+    engine_uid: str
     uid: str
     name: str
     status: bool = False
@@ -99,19 +100,19 @@ class ManagementConfigDict(TypedDict):
 
 
 # Light
-class LightMode(Enum):
-    off = 0
-    on = 1
-    automatic = 2
+class ActuatorMode(Enum):
+    off = "off"
+    on = "on"
+    automatic = "automatic"
 
 
-LightModeNames = Literal[*get_enum_names(LightMode)]
+ActuatorModeNames = Literal[*get_enum_names(ActuatorMode)]
 
 
 class LightMethod(Enum):
-    fixed = 1
-    elongate = 2
-    mimic = 3
+    fixed = "fixed"
+    elongate = "elongate"
+    mimic = "mimic"
 
 
 LightMethodNames = Literal[*get_enum_names(LightMethod)]
@@ -188,6 +189,7 @@ class ClimateConfig:
 
 
 class ClimateConfigDict(TypedDict):
+    parameter: ClimateParameterNames
     day: int | float
     night: int | float
     hysteresis: int | float
@@ -209,7 +211,7 @@ class EnvironmentConfig:
 class EnvironmentConfigDict(TypedDict):
     chaos: ChaosConfigDict
     sky: SkyConfigDict
-    climate: dict[str, ClimateConfigDict]
+    climate: list[ClimateConfigDict]
 
 
 class HardwareLevel(Enum):
@@ -349,14 +351,14 @@ class LightingHoursDict(TypedDict):
 @dataclass()
 class LightData(LightingHours):
     status: bool = False
-    mode: LightMode = LightMode.automatic
+    mode: ActuatorMode = ActuatorMode.automatic
     method: LightMethod = LightMethod.fixed
     timer: float = 0.0
 
 
 class LightDataDict(TypedDict):
     status: bool
-    mode: LightMode
+    mode: ActuatorMode
     method: LightMethod
     timer: float
 
