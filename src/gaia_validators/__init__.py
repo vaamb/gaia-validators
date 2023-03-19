@@ -299,13 +299,13 @@ class SensorRecordDict(TypedDict):
 @dataclass()
 class SensorsData:
     timestamp: datetime
-    data: list[SensorRecord] = field(default_factory=list)
+    records: list[SensorRecord] = field(default_factory=list)
     average: list[MeasureRecord] = field(default_factory=list)
 
 
 class SensorsDataDict(TypedDict):
     timestamp: datetime
-    data: list[SensorRecordDict]
+    records: list[SensorRecordDict]
     average: list[MeasureRecordDict]
 
 
@@ -356,16 +356,25 @@ class LightData(LightingHours):
     timer: float = 0.0
 
 
-class LightDataDict(TypedDict):
+class LightDataDict(LightingHoursDict):
     status: bool
     mode: ActuatorMode
     method: LightMethod
     timer: float
 
 
+# Others
+@dataclass()
+class SunTimes:
+    twilight_begin: time
+    sunrise: time
+    sunset: time
+    twilight_end: time
+
+
 # Broker payloads
 @dataclass()
-class ConfigPayload:
+class BrokerPayload:
     uid: str
     data: Any
 
@@ -377,50 +386,70 @@ class ConfigPayload:
         )
 
 
+class BrokerPayloadDict(TypedDict):
+    uid: str
+
+
+# Config
 @dataclass()
-class BaseInfoConfigPayload(ConfigPayload):
+class BaseInfoConfigPayload(BrokerPayload):
     data: BaseInfoConfig
 
 
-class BaseInfoConfigPayloadDict(TypedDict):
-    uid: str
+class BaseInfoConfigPayloadDict(BrokerPayloadDict):
     data: BaseInfoConfigDict
 
 
 @dataclass()
-class ManagementConfigPayload(ConfigPayload):
+class ManagementConfigPayload(BrokerPayload):
     data: ManagementConfig
 
 
-class ManagementConfigPayloadDict(TypedDict):
-    uid: str
+class ManagementConfigPayloadDict(BrokerPayloadDict):
     data: ManagementConfigDict
 
 
 @dataclass()
-class EnvironmentConfigPayload(ConfigPayload):
+class EnvironmentConfigPayload(BrokerPayload):
     data: EnvironmentConfig
 
 
-class EnvironmentConfigPayloadDict(TypedDict):
-    uid: str
+class EnvironmentConfigPayloadDict(BrokerPayloadDict):
     data: EnvironmentConfigDict
 
 
 @dataclass()
-class HardwareConfigPayload(ConfigPayload):
+class HardwareConfigPayload(BrokerPayload):
     data: list[HardwareConfig]
 
 
-class HardwareConfigPayloadDict(TypedDict):
-    uid: str
+class HardwareConfigPayloadDict(BrokerPayloadDict):
     data: HardwareConfigDict
 
 
-# Others
-@dataclass()
-class SunTimes:
-    twilight_begin: time
-    sunrise: time
-    sunset: time
-    twilight_end: time
+# Data
+@dataclass
+class SensorsDataPayload(BrokerPayload):
+    data: SensorsData
+
+
+class SensorsDataPayloadDict(BrokerPayloadDict):
+    data: SensorsDataDict
+
+
+@dataclass
+class LightDataPayload(BrokerPayload):
+    data: LightData
+
+
+class LightDataPayloadDict(BrokerPayloadDict):
+    data: LightDataDict
+
+
+@dataclass
+class HealthDataPayload(BrokerPayload):
+    data: HealthData
+
+
+class HealthDataPayloadDict(BrokerPayloadDict):
+    data: HealthDataDict
