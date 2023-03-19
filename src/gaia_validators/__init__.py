@@ -323,14 +323,12 @@ class HealthRecordDict(TypedDict):
 
 
 @dataclass()
-class HealthData:
+class HealthData(HealthRecord):
     timestamp: datetime
-    data: HealthRecord
 
 
-class HealthDataDict(TypedDict):
+class HealthDataDict(HealthRecordDict):
     timestamp: datetime | str
-    data: HealthRecordDict
 
 
 @dataclass()
