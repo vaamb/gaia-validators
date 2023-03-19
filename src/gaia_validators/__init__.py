@@ -157,8 +157,8 @@ class SkyConfig(DayConfig):
 
 
 class SkyConfigDict(TypedDict):
-    day: str
-    night: str
+    day:  time | None | str
+    night:  time | None | str
     lighting: str
 
 
@@ -340,10 +340,10 @@ class LightingHours:
 
 
 class LightingHoursDict(TypedDict):
-    morning_start: time
-    morning_end: time | None
-    evening_start: time | None
-    evening_end: time
+    morning_start: time | str
+    morning_end: time | None | str
+    evening_start: time | None | str
+    evening_end: time | str
 
 
 @dataclass()
