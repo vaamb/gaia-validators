@@ -189,7 +189,7 @@ class ClimateConfig:
 
 
 class ClimateConfigDict(TypedDict):
-    parameter: ClimateParameterNames
+    parameter: ClimateParameter | ClimateParameterNames
     day: int | float
     night: int | float
     hysteresis: int | float
@@ -304,7 +304,7 @@ class SensorsData:
 
 
 class SensorsDataDict(TypedDict):
-    timestamp: datetime
+    timestamp: datetime | str
     records: list[SensorRecordDict]
     average: list[MeasureRecordDict]
 
@@ -329,7 +329,7 @@ class HealthData:
 
 
 class HealthDataDict(TypedDict):
-    timestamp: datetime
+    timestamp: datetime | str
     data: HealthRecordDict
 
 
@@ -424,7 +424,7 @@ class HardwareConfigPayload(BrokerPayload):
 
 
 class HardwareConfigPayloadDict(BrokerPayloadDict):
-    data: HardwareConfigDict
+    data: list[HardwareConfigDict]
 
 
 # Data
