@@ -101,12 +101,22 @@ class ManagementConfigDict(TypedDict):
 
 # Light
 class ActuatorMode(Enum):
-    off = "off"
-    on = "on"
     automatic = "automatic"
+    manual = "manual"
 
 
 ActuatorModeNames = Literal[*get_enum_names(ActuatorMode)]
+
+
+class ActuatorStatus(Enum):
+    on = True
+    off = False
+
+
+ActuatorStatusNames = Literal[*get_enum_names(ActuatorStatus)]
+
+
+ActuatorTurnTo = Literal["on", "off", "automatic"]
 
 
 class LightMethod(Enum):
