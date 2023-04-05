@@ -5,7 +5,7 @@ from datetime import datetime, time
 from enum import Enum, IntFlag
 from typing import Any, Literal, TypedDict
 
-from pydantic import validator
+from pydantic import Field, validator
 from pydantic.dataclasses import dataclass
 
 
@@ -252,8 +252,8 @@ class HardwareConfig:
     type: HardwareType
     level: HardwareLevel
     model: str
-    measure: list[str] = field(default_factory=list)
-    plant: list[str] = field(default_factory=list)
+    measures: list[str] = Field(default_factory=list, alias="measure")
+    plants: list[str] = Field(default_factory=list, alias="measure")
 
     @validator("type", pre=True)
     def parse_type(cls, value):
@@ -279,8 +279,8 @@ class HardwareConfigDict(TypedDict):
     type: str
     level: str
     model: str
-    measure: list[str]
-    plant: list[str]
+    measures: list[str]
+    plants: list[str]
 
 
 # Data and records
