@@ -263,7 +263,7 @@ class HardwareConfig:
     def parse_level(cls, value):
         return safe_enum_from_name(HardwareLevel, value)
 
-    @validator("measure", "plant", pre=True)
+    @validator("measures", "plants", pre=True)
     def parse_list(cls, value: str | list | None):
         if value is None:
             return []
