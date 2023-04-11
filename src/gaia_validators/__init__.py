@@ -264,7 +264,7 @@ class HardwareConfig:
         return safe_enum_from_name(HardwareLevel, value)
 
     @validator("measure", "plant", pre=True)
-    def parse_day(cls, value: str | list | None):
+    def parse_list(cls, value: str | list | None):
         if value is None:
             return []
         if isinstance(value, str):
