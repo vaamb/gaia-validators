@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import field
 from datetime import datetime, time
 from enum import Enum, IntFlag
 from typing import Any, Literal, TypedDict
 
-from pydantic import Field, validator
+from pydantic import BaseModel, Field, validator
 from pydantic.dataclasses import dataclass
 
 
@@ -40,8 +39,7 @@ class IDs:
 
 
 # Config
-@dataclass()
-class BaseInfoConfig:
+class BaseInfoConfig(BaseModel):
     engine_uid: str
     uid: str
     name: str
@@ -69,8 +67,7 @@ class ManagementFlags(IntFlag):
 ManagementNames = Literal[*get_enum_names(ManagementFlags)]
 
 
-@dataclass()
-class ManagementConfig:
+class ManagementConfig(BaseModel):
     sensors: bool = False
     light: bool = False
     climate: bool = False
@@ -129,8 +126,7 @@ LightMethodNames = Literal[*get_enum_names(LightMethod)]
 
 
 # Climate
-@dataclass()
-class ChaosConfig:
+class ChaosConfig(BaseModel):
     frequency: int = 0
     duration: int = 0
     intensity: int | float = 0.0
@@ -142,8 +138,7 @@ class ChaosConfigDict(TypedDict):
     intensity: int | float
 
 
-@dataclass()
-class DayConfig:
+class DayConfig(BaseModel):
     day: time | None = time(8)
     night: time | None = time(20)
 
@@ -157,7 +152,6 @@ class DayConfig:
         return time(int(hours), int(minutes))
 
 
-@dataclass()
 class SkyConfig(DayConfig):
     lighting: LightMethod = LightMethod.fixed
 
@@ -182,8 +176,7 @@ class ClimateParameter(Enum):
 ClimateParameterNames = Literal[*get_enum_names(ClimateParameter)]
 
 
-@dataclass()
-class ClimateConfig:
+class ClimateConfig(BaseModel):
     parameter: ClimateParameter
     day: float
     night: float
@@ -205,11 +198,10 @@ class ClimateConfigDict(TypedDict):
     hysteresis: int | float
 
 
-@dataclass()
-class EnvironmentConfig:
-    chaos: ChaosConfig = field(default_factory=ChaosConfig)
-    sky: SkyConfig = field(default_factory=SkyConfig)
-    climate: list[ClimateConfig] = field(default_factory=list)
+class EnvironmentConfig(BaseModel):
+    chaos: ChaosConfig = Field(default_factory=ChaosConfig)
+    sky: SkyConfig = Field(default_factory=SkyConfig)
+    climate: list[ClimateConfig] = Field(default_factory=list)
 
     @validator("climate", pre=True)
     def format_climate(cls, value: dict | list):
@@ -244,8 +236,7 @@ class HardwareType(Enum):
 HardwareTypeNames = Literal[*get_enum_names(HardwareType)]
 
 
-@dataclass()
-class HardwareConfig:
+class HardwareConfig(BaseModel):
     uid: str
     name: str
     address: str
@@ -253,7 +244,10 @@ class HardwareConfig:
     level: HardwareLevel
     model: str
     measures: list[str] = Field(default_factory=list, alias="measure")
-    plants: list[str] = Field(default_factory=list, alias="measure")
+    plants: list[str] = Field(default_factory=list, alias="plant")
+
+    class Config:
+        allow_population_by_field_name = True
 
     @validator("type", pre=True)
     def parse_type(cls, value):
@@ -264,7 +258,7 @@ class HardwareConfig:
         return safe_enum_from_name(HardwareLevel, value)
 
     @validator("measures", "plants", pre=True)
-    def parse_list(cls, value: str | list | None):
+    def parse_to_list(cls, value: str | list | None):
         if value is None:
             return []
         if isinstance(value, str):
@@ -284,8 +278,7 @@ class HardwareConfigDict(TypedDict):
 
 
 # Data and records
-@dataclass()
-class MeasureRecord:
+class MeasureRecord(BaseModel):
     measure: str
     value: int | float
 
@@ -295,10 +288,9 @@ class MeasureRecordDict(TypedDict):
     value: int | float
 
 
-@dataclass()
-class SensorRecord:
+class SensorRecord(BaseModel):
     sensor_uid: str
-    measures: list[MeasureRecord] = field(default_factory=list)
+    measures: list[MeasureRecord] = Field(default_factory=list)
 
 
 class SensorRecordDict(TypedDict):
@@ -306,11 +298,10 @@ class SensorRecordDict(TypedDict):
     measures: list[MeasureRecordDict]
 
 
-@dataclass()
-class SensorsData:
+class SensorsData(BaseModel):
     timestamp: datetime
-    records: list[SensorRecord] = field(default_factory=list)
-    average: list[MeasureRecord] = field(default_factory=list)
+    records: list[SensorRecord] = Field(default_factory=list)
+    average: list[MeasureRecord] = Field(default_factory=list)
 
 
 class SensorsDataDict(TypedDict):
@@ -319,8 +310,7 @@ class SensorsDataDict(TypedDict):
     average: list[MeasureRecordDict]
 
 
-@dataclass()
-class HealthRecord:
+class HealthRecord(BaseModel):
     green: int | float
     necrosis: int | float
     index: int | float
@@ -332,7 +322,6 @@ class HealthRecordDict(TypedDict):
     index: int | float
 
 
-@dataclass()
 class HealthData(HealthRecord):
     timestamp: datetime
 
@@ -341,8 +330,7 @@ class HealthDataDict(HealthRecordDict):
     timestamp: datetime | str
 
 
-@dataclass()
-class LightingHours:
+class LightingHours(BaseModel):
     morning_start: time = time(8)
     morning_end: time | None = None
     evening_start: time | None = None
@@ -356,7 +344,6 @@ class LightingHoursDict(TypedDict):
     evening_end: time | str
 
 
-@dataclass()
 class LightData(LightingHours):
     status: bool = False
     mode: ActuatorMode = ActuatorMode.automatic
@@ -372,8 +359,7 @@ class LightDataDict(LightingHoursDict):
 
 
 # Others
-@dataclass()
-class SunTimes:
+class SunTimes(BaseModel):
     twilight_begin: time
     sunrise: time
     sunset: time
@@ -381,8 +367,7 @@ class SunTimes:
 
 
 # Broker payloads
-@dataclass()
-class BrokerPayload:
+class BrokerPayload(BaseModel):
     uid: str
     data: Any
 
@@ -399,7 +384,6 @@ class BrokerPayloadDict(TypedDict):
 
 
 # Config
-@dataclass()
 class BaseInfoConfigPayload(BrokerPayload):
     data: BaseInfoConfig
 
@@ -408,7 +392,6 @@ class BaseInfoConfigPayloadDict(BrokerPayloadDict):
     data: BaseInfoConfigDict
 
 
-@dataclass()
 class ManagementConfigPayload(BrokerPayload):
     data: ManagementConfig
 
@@ -417,7 +400,6 @@ class ManagementConfigPayloadDict(BrokerPayloadDict):
     data: ManagementConfigDict
 
 
-@dataclass()
 class EnvironmentConfigPayload(BrokerPayload):
     data: EnvironmentConfig
 
@@ -426,7 +408,6 @@ class EnvironmentConfigPayloadDict(BrokerPayloadDict):
     data: EnvironmentConfigDict
 
 
-@dataclass()
 class HardwareConfigPayload(BrokerPayload):
     data: list[HardwareConfig]
 
@@ -436,7 +417,6 @@ class HardwareConfigPayloadDict(BrokerPayloadDict):
 
 
 # Data
-@dataclass
 class SensorsDataPayload(BrokerPayload):
     data: SensorsData
 
@@ -445,7 +425,6 @@ class SensorsDataPayloadDict(BrokerPayloadDict):
     data: SensorsDataDict
 
 
-@dataclass
 class LightDataPayload(BrokerPayload):
     data: LightData
 
@@ -454,7 +433,6 @@ class LightDataPayloadDict(BrokerPayloadDict):
     data: LightDataDict
 
 
-@dataclass
 class HealthDataPayload(BrokerPayload):
     data: HealthData
 
