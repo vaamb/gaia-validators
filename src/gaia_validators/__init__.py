@@ -245,6 +245,7 @@ class HardwareConfig(BaseModel):
     model: str
     measures: list[str] = Field(default_factory=list, alias="measure")
     plants: list[str] = Field(default_factory=list, alias="plant")
+    multiplexer_model: str | None = Field(..., alias="multiplexer")
 
     class Config:
         allow_population_by_field_name = True
