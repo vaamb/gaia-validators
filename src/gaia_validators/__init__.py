@@ -96,7 +96,7 @@ class ManagementConfigDict(TypedDict):
     webcam: bool
 
 
-# Light
+# Actuator
 class ActuatorMode(Enum):
     automatic = "automatic"
     manual = "manual"
@@ -116,6 +116,7 @@ ActuatorStatusNames = Literal[*get_enum_names(ActuatorStatus)]
 ActuatorTurnTo = Literal["on", "off", "automatic"]
 
 
+# Light
 class LightMethod(Enum):
     fixed = "fixed"
     elongate = "elongate"
@@ -216,6 +217,7 @@ class EnvironmentConfigDict(TypedDict):
     climate: list[ClimateConfigDict]
 
 
+# Hardware
 class HardwareLevel(Enum):
     environment = "environment"
     plants = "plants"
@@ -245,7 +247,7 @@ class HardwareConfig(BaseModel):
     model: str
     measures: list[str] = Field(default_factory=list, alias="measure")
     plants: list[str] = Field(default_factory=list, alias="plant")
-    multiplexer_model: str | None = Field(..., alias="multiplexer")
+    multiplexer_model: str | None = Field(default=None, alias="multiplexer")
 
     class Config:
         allow_population_by_field_name = True
@@ -276,6 +278,7 @@ class HardwareConfigDict(TypedDict):
     model: str
     measures: list[str]
     plants: list[str]
+    multiplexer_model: str | None
 
 
 # Data and records
