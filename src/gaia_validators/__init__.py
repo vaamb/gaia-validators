@@ -147,10 +147,13 @@ class DayConfig(BaseModel):
     def parse_day(cls, value: str | time | None):
         if value is None or isinstance(value, time):
             return value
-        hours, minutes = value.replace('H', 'h').split("h")
-        if minutes == "":
-            minutes = 0
-        return time(int(hours), int(minutes))
+        try:
+            return time.fromisoformat(value)
+        except ValueError:            
+            hours, minutes = value.replace('H', 'h').split("h")
+            if minutes == "":
+                minutes = 0
+            return time(int(hours), int(minutes))
 
 
 class SkyConfig(DayConfig):
