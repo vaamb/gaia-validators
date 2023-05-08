@@ -374,7 +374,17 @@ class SunTimes(BaseModel):
 
 
 # Broker payloads
-class BrokerPayload(BaseModel):
+class EnginePayload(BaseModel):
+    engine_uid: str
+    address: str
+
+
+class EnginePayloadDict(TypedDict):
+    engine_uid: str
+    address: str
+
+
+class EcosystemPayload(BaseModel):
     uid: str
     data: Any
 
@@ -386,63 +396,63 @@ class BrokerPayload(BaseModel):
         )
 
 
-class BrokerPayloadDict(TypedDict):
+class EcosystemPayloadDict(TypedDict):
     uid: str
 
 
 # Config
-class BaseInfoConfigPayload(BrokerPayload):
+class BaseInfoConfigPayload(EcosystemPayload):
     data: BaseInfoConfig
 
 
-class BaseInfoConfigPayloadDict(BrokerPayloadDict):
+class BaseInfoConfigPayloadDict(EcosystemPayloadDict):
     data: BaseInfoConfigDict
 
 
-class ManagementConfigPayload(BrokerPayload):
+class ManagementConfigPayload(EcosystemPayload):
     data: ManagementConfig
 
 
-class ManagementConfigPayloadDict(BrokerPayloadDict):
+class ManagementConfigPayloadDict(EcosystemPayloadDict):
     data: ManagementConfigDict
 
 
-class EnvironmentConfigPayload(BrokerPayload):
+class EnvironmentConfigPayload(EcosystemPayload):
     data: EnvironmentConfig
 
 
-class EnvironmentConfigPayloadDict(BrokerPayloadDict):
+class EnvironmentConfigPayloadDict(EcosystemPayloadDict):
     data: EnvironmentConfigDict
 
 
-class HardwareConfigPayload(BrokerPayload):
+class HardwareConfigPayload(EcosystemPayload):
     data: list[HardwareConfig]
 
 
-class HardwareConfigPayloadDict(BrokerPayloadDict):
+class HardwareConfigPayloadDict(EcosystemPayloadDict):
     data: list[HardwareConfigDict]
 
 
 # Data
-class SensorsDataPayload(BrokerPayload):
+class SensorsDataPayload(EcosystemPayload):
     data: SensorsData
 
 
-class SensorsDataPayloadDict(BrokerPayloadDict):
+class SensorsDataPayloadDict(EcosystemPayloadDict):
     data: SensorsDataDict
 
 
-class LightDataPayload(BrokerPayload):
+class LightDataPayload(EcosystemPayload):
     data: LightData
 
 
-class LightDataPayloadDict(BrokerPayloadDict):
+class LightDataPayloadDict(EcosystemPayloadDict):
     data: LightDataDict
 
 
-class HealthDataPayload(BrokerPayload):
+class HealthDataPayload(EcosystemPayload):
     data: HealthData
 
 
-class HealthDataPayloadDict(BrokerPayloadDict):
+class HealthDataPayloadDict(EcosystemPayloadDict):
     data: HealthDataDict
