@@ -47,6 +47,7 @@ class BaseInfoConfig(BaseModel):
 
 
 class BaseInfoConfigDict(TypedDict):
+    engine_uid: str
     uid: str
     name: str
     status: bool
