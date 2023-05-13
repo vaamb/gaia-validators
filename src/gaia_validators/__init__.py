@@ -457,3 +457,17 @@ class HealthDataPayload(EcosystemPayload):
 
 class HealthDataPayloadDict(EcosystemPayloadDict):
     data: HealthDataDict
+
+
+class TurnActuatorPayload(BaseModel):
+    ecosystem_uid: str
+    actuator: HardwareType
+    mode: ActuatorMode = ActuatorMode.automatic
+    countdown: float = 0.0
+
+
+class TurnActuatorPayloadDict(TypedDict):
+    ecosystem_uid: str
+    actuator: HardwareType
+    mode: ActuatorMode
+    countdown: float
