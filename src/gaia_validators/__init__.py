@@ -466,11 +466,11 @@ class TurnActuatorPayload(BaseModel):
     countdown: float = 0.0
 
     @validator("actuator", pre=True)
-    def parse_lighting(cls, value):
+    def parse_actuator(cls, value):
         return safe_enum_from_name(HardwareType, value)
 
     @validator("mode", pre=True)
-    def parse_lighting(cls, value):
+    def parse_mode(cls, value):
         return safe_enum_from_name(ActuatorMode, value)
 
 
