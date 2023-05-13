@@ -465,6 +465,14 @@ class TurnActuatorPayload(BaseModel):
     mode: ActuatorMode = ActuatorMode.automatic
     countdown: float = 0.0
 
+    @validator("actuator", pre=True)
+    def parse_lighting(cls, value):
+        return safe_enum_from_name(HardwareType, value)
+
+    @validator("mode", pre=True)
+    def parse_lighting(cls, value):
+        return safe_enum_from_name(ActuatorMode, value)
+
 
 class TurnActuatorPayloadDict(TypedDict):
     ecosystem_uid: str
