@@ -131,13 +131,13 @@ LightMethodNames = Literal[*get_enum_names(LightMethod)]
 class ChaosConfig(BaseModel):
     frequency: int = 0
     duration: int = 0
-    intensity: int | float = 0.0
+    intensity: float = 0.0
 
 
 class ChaosConfigDict(TypedDict):
     frequency: int
     duration: int
-    intensity: int | float
+    intensity: float
 
 
 class DayConfig(BaseModel):
@@ -198,9 +198,9 @@ class ClimateConfig(BaseModel):
 
 class ClimateConfigDict(TypedDict):
     parameter: ClimateParameter | ClimateParameterNames
-    day: int | float
-    night: int | float
-    hysteresis: int | float
+    day: float
+    night: float
+    hysteresis: float
 
 
 class EnvironmentConfig(BaseModel):
@@ -288,12 +288,12 @@ class HardwareConfigDict(TypedDict):
 # Data and records
 class MeasureRecord(BaseModel):
     measure: str
-    value: int | float
+    value: float
 
 
 class MeasureRecordDict(TypedDict):
     measure: str
-    value: int | float
+    value: float
 
 
 class SensorRecord(BaseModel):
@@ -319,15 +319,15 @@ class SensorsDataDict(TypedDict):
 
 
 class HealthRecord(BaseModel):
-    green: int | float
-    necrosis: int | float
-    index: int | float
+    green: float
+    necrosis: float
+    index: float
 
 
 class HealthRecordDict(TypedDict):
-    green: int | float
-    necrosis: int | float
-    index: int | float
+    green: float
+    necrosis: float
+    index: float
 
 
 class HealthData(HealthRecord):
