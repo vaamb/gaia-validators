@@ -114,7 +114,10 @@ class ActuatorStatus(Enum):
 ActuatorStatusNames = Literal[*get_enum_names(ActuatorStatus)]
 
 
-ActuatorTurnTo = Literal["on", "off", "automatic"]
+class ActuatorModePayload(Enum):
+    on = "on"
+    off = "off"
+    automatic = "automatic"
 
 
 # Light
@@ -460,9 +463,9 @@ class HealthDataPayloadDict(EcosystemPayloadDict):
 
 
 class TurnActuatorPayload(BaseModel):
-    ecosystem_uid: str
+    ecosystem_uid: str | None = None  # can be None if transferred in parallel
     actuator: HardwareType
-    mode: ActuatorMode = ActuatorMode.automatic
+    mode: ActuatorModePayload = ActuatorModePayload.automatic
     countdown: float = 0.0
 
     @validator("actuator", pre=True)
@@ -471,11 +474,11 @@ class TurnActuatorPayload(BaseModel):
 
     @validator("mode", pre=True)
     def parse_mode(cls, value):
-        return safe_enum_from_name(ActuatorMode, value)
+        return safe_enum_from_name(ActuatorModePayload, value)
 
 
 class TurnActuatorPayloadDict(TypedDict):
-    ecosystem_uid: str
+    ecosystem_uid: str | None
     actuator: HardwareType
     mode: ActuatorMode
     countdown: float
