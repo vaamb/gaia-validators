@@ -4,7 +4,7 @@ from datetime import datetime, time
 from enum import Enum, IntFlag
 from typing import Any, Literal, TypedDict
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel as _BaseModel, Field, validator
 from pydantic.dataclasses import dataclass
 
 
@@ -36,6 +36,11 @@ class IDs:
 
     def __iter__(self):
         return iter((self.uid, self.name))
+
+
+class BaseModel(_BaseModel):
+    class Config:
+        orm_mode = True
 
 
 # Config
