@@ -374,6 +374,39 @@ class LightDataDict(LightingHoursDict):
     timer: float
 
 
+# Actuators data
+class ActuatorState(BaseModel):
+    active: bool = False
+    status: bool = False
+    mode: ActuatorMode = ActuatorMode.automatic
+
+    @validator("mode", pre=True)
+    def parse_mode(cls, value):
+        return safe_enum_from_name(ActuatorMode, value)
+
+
+class ActuatorStateDict(TypedDict):
+    active: bool
+    status: bool
+    mode: ActuatorMode
+
+
+class ActuatorsData(BaseModel):
+    light: ActuatorState = ActuatorState()
+    cooler: ActuatorState = ActuatorState()
+    heater: ActuatorState = ActuatorState()
+    humidifier: ActuatorState = ActuatorState()
+    dehumidifier: ActuatorState = ActuatorState()
+
+
+class ActuatorsDataDict(TypedDict):
+    light: ActuatorStateDict
+    cooler: ActuatorStateDict
+    heater: ActuatorStateDict
+    humidifier: ActuatorStateDict
+    dehumidifier: ActuatorStateDict
+
+
 # Others
 class SunTimes(BaseModel):
     twilight_begin: time
@@ -457,6 +490,14 @@ class LightDataPayload(EcosystemPayload):
 
 class LightDataPayloadDict(EcosystemPayloadDict):
     data: LightDataDict
+
+
+class ActuatorsDataPayload(EcosystemPayload):
+    data: ActuatorsData
+
+
+class ActuatorsDataPayloadDict(EcosystemPayloadDict):
+    data: ActuatorsDataDict
 
 
 class HealthDataPayload(EcosystemPayload):
