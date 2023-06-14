@@ -361,17 +361,11 @@ class LightingHoursDict(TypedDict):
 
 
 class LightData(LightingHours):
-    status: bool = False
-    mode: ActuatorMode = ActuatorMode.automatic
     method: LightMethod = LightMethod.fixed
-    timer: float = 0.0
 
 
 class LightDataDict(LightingHoursDict):
-    status: bool
-    mode: ActuatorMode
     method: LightMethod
-    timer: float
 
 
 # Actuators data
