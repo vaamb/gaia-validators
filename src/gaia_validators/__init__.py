@@ -529,7 +529,7 @@ class TurnActuatorPayload(BaseModel):
 class TurnActuatorPayloadDict(TypedDict):
     ecosystem_uid: str | None
     actuator: HardwareType
-    mode: ActuatorMode
+    mode: ActuatorModePayload
     countdown: float
 
 
