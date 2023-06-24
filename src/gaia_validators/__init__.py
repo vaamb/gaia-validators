@@ -43,6 +43,14 @@ class BaseModel(_BaseModel):
         orm_mode = True
 
 
+# Crud actions
+class CrudAction(Enum):
+    create = "create"
+    get = "get"  # Don't like "read"
+    update = "update"
+    delete = "delete"
+
+
 # Config
 class BaseInfoConfig(BaseModel):
     engine_uid: str
@@ -436,7 +444,7 @@ class EcosystemPayloadDict(TypedDict):
     uid: str
 
 
-# Config
+# Config Payload
 class BaseInfoConfigPayload(EcosystemPayload):
     data: BaseInfoConfig
 
@@ -469,7 +477,7 @@ class HardwareConfigPayloadDict(EcosystemPayloadDict):
     data: list[HardwareConfigDict]
 
 
-# Data
+# Data payloads
 class SensorsDataPayload(EcosystemPayload):
     data: SensorsData
 
@@ -502,6 +510,7 @@ class HealthDataPayloadDict(EcosystemPayloadDict):
     data: HealthDataDict
 
 
+# Actuators payload
 class TurnActuatorPayload(BaseModel):
     ecosystem_uid: str | None = None  # can be None if transferred in parallel
     actuator: HardwareType
@@ -522,3 +531,20 @@ class TurnActuatorPayloadDict(TypedDict):
     actuator: HardwareType
     mode: ActuatorMode
     countdown: float
+
+
+# Crud payload
+class CrudPayload(BaseModel):
+    action: CrudAction
+    target: str
+    values: dict = Field(default_factory=dict)
+
+    @validator("action", pre=True)
+    def parse_actuator(cls, value):
+        return safe_enum_from_name(CrudAction, value)
+
+
+class CrudPayloadDict(TypedDict):
+    action: CrudAction
+    target: str
+    values: dict
