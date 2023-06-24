@@ -541,7 +541,7 @@ class CrudPayload(BaseModel):
     values: dict = Field(default_factory=dict)
 
     @validator("action", pre=True)
-    def parse_actuator(cls, value):
+    def parse_action(cls, value):
         return safe_enum_from_name(CrudAction, value)
 
 
@@ -550,3 +550,19 @@ class CrudPayloadDict(TypedDict):
     action: CrudAction
     target: str
     values: dict
+
+
+class SynchronisationPayload(BaseModel):
+    ecosystems: list[str]
+    since: datetime
+
+    @validator("ecosystems", pre=True)
+    def parse_ecosystems(cls, value):
+        if isinstance(value, str):
+            return [value]
+        return value
+
+
+class SynchronisationPayloadDict(TypedDict):
+    ecosystems: list[str]
+    since: datetime | str
