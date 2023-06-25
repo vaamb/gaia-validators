@@ -1,27 +1,27 @@
 from __future__ import annotations
 
 from datetime import datetime, time
-from enum import Enum, IntFlag
+from enum import Enum, EnumType, IntFlag
 from typing import Any, Literal, TypedDict
 
 from pydantic import BaseModel as _BaseModel, Field, validator
 from pydantic.dataclasses import dataclass
 
 
-def get_enum_names(enum: Enum) -> list:
+def get_enum_names(enum: EnumType) -> list:
     return [i.name for i in enum]
 
 
-def safe_enum_from_name(enum: Enum, name: str | Enum) -> Enum:
-    if isinstance(name, enum):
-        return name
-    return {i.name: i for i in enum}[name]
+def safe_enum_from_name(enum: EnumType, name: str | Enum) -> Enum:
+    if isinstance(name, str):
+        return {i.name: i for i in enum}[name]
+    return name
 
 
-def safe_enum_from_value(enum: Enum, value: str | Enum) -> Enum:
-    if isinstance(value, enum):
-        return value
-    return {i.value: i for i in enum}[value]
+def safe_enum_from_value(enum: EnumType, value: str | Enum) -> Enum:
+    if isinstance(value, str):
+        return {i.value: i for i in enum}[value]
+    return value
 
 
 @dataclass()
@@ -41,6 +41,14 @@ class IDs:
 class BaseModel(_BaseModel):
     class Config:
         orm_mode = True
+
+
+# Crud actions
+class CrudAction(Enum):
+    create = "create"
+    get = "get"  # Don't like "read"
+    update = "update"
+    delete = "delete"
 
 
 # Config
@@ -436,7 +444,7 @@ class EcosystemPayloadDict(TypedDict):
     uid: str
 
 
-# Config
+# Config Payload
 class BaseInfoConfigPayload(EcosystemPayload):
     data: BaseInfoConfig
 
@@ -469,7 +477,7 @@ class HardwareConfigPayloadDict(EcosystemPayloadDict):
     data: list[HardwareConfigDict]
 
 
-# Data
+# Data payloads
 class SensorsDataPayload(EcosystemPayload):
     data: SensorsData
 
@@ -502,6 +510,7 @@ class HealthDataPayloadDict(EcosystemPayloadDict):
     data: HealthDataDict
 
 
+# Actuators payload
 class TurnActuatorPayload(BaseModel):
     ecosystem_uid: str | None = None  # can be None if transferred in parallel
     actuator: HardwareType
@@ -520,5 +529,40 @@ class TurnActuatorPayload(BaseModel):
 class TurnActuatorPayloadDict(TypedDict):
     ecosystem_uid: str | None
     actuator: HardwareType
-    mode: ActuatorMode
+    mode: ActuatorModePayload
     countdown: float
+
+
+# Crud payload
+class CrudPayload(BaseModel):
+    engine_uid: str
+    action: CrudAction
+    target: str
+    values: dict = Field(default_factory=dict)
+
+    @validator("action", pre=True)
+    def parse_action(cls, value):
+        return safe_enum_from_name(CrudAction, value)
+
+
+class CrudPayloadDict(TypedDict):
+    engine_uid: str
+    action: CrudAction
+    target: str
+    values: dict
+
+
+class SynchronisationPayload(BaseModel):
+    ecosystems: list[str]
+    since: datetime
+
+    @validator("ecosystems", pre=True)
+    def parse_ecosystems(cls, value):
+        if isinstance(value, str):
+            return [value]
+        return value
+
+
+class SynchronisationPayloadDict(TypedDict):
+    ecosystems: list[str]
+    since: datetime | str
