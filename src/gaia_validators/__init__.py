@@ -1,24 +1,33 @@
 from __future__ import annotations
 
 from datetime import datetime, time
-from enum import Enum, EnumType, IntFlag
+from enum import EnumType, IntFlag
 from typing import Any, Literal, TypedDict
 
 from pydantic import BaseModel as _BaseModel, Field, validator
 from pydantic.dataclasses import dataclass
+
+try:
+    from enum import StrEnum
+except ImportError:
+    from enum import Enum
+
+    class StrEnum(str, Enum):
+        def __repr__(self) -> str:
+            return str.__repr__(self.value)
 
 
 def get_enum_names(enum: EnumType) -> list:
     return [i.name for i in enum]
 
 
-def safe_enum_from_name(enum: EnumType, name: str | Enum) -> Enum:
+def safe_enum_from_name(enum: EnumType, name: str | StrEnum) -> StrEnum:
     if isinstance(name, str):
         return {i.name: i for i in enum}[name]
     return name
 
 
-def safe_enum_from_value(enum: EnumType, value: str | Enum) -> Enum:
+def safe_enum_from_value(enum: EnumType, value: str | StrEnum) -> StrEnum:
     if isinstance(value, str):
         return {i.value: i for i in enum}[value]
     return value
@@ -44,7 +53,7 @@ class BaseModel(_BaseModel):
 
 
 # Crud actions
-class CrudAction(Enum):
+class CrudAction(StrEnum):
     create = "create"
     get = "get"  # Don't like "read"
     update = "update"
@@ -111,7 +120,7 @@ class ManagementConfigDict(TypedDict):
 
 
 # Actuator
-class ActuatorMode(Enum):
+class ActuatorMode(StrEnum):
     automatic = "automatic"
     manual = "manual"
 
@@ -119,22 +128,22 @@ class ActuatorMode(Enum):
 ActuatorModeNames = Literal[*get_enum_names(ActuatorMode)]
 
 
-class ActuatorStatus(Enum):
-    on = True
-    off = False
+class ActuatorStatus(StrEnum):
+    on = "on"
+    off = "off"
 
 
 ActuatorStatusNames = Literal[*get_enum_names(ActuatorStatus)]
 
 
-class ActuatorModePayload(Enum):
+class ActuatorModePayload(StrEnum):
     on = "on"
     off = "off"
     automatic = "automatic"
 
 
 # Light
-class LightMethod(Enum):
+class LightMethod(StrEnum):
     fixed = "fixed"
     elongate = "elongate"
     mimic = "mimic"
@@ -187,7 +196,7 @@ class SkyConfigDict(TypedDict):
     lighting: str
 
 
-class ClimateParameter(Enum):
+class ClimateParameter(StrEnum):
     temperature = "temperature"
     humidity = "humidity"
     light = "light"
@@ -238,7 +247,7 @@ class EnvironmentConfigDict(TypedDict):
 
 
 # Hardware
-class HardwareLevel(Enum):
+class HardwareLevel(StrEnum):
     environment = "environment"
     plants = "plants"
 
@@ -246,7 +255,7 @@ class HardwareLevel(Enum):
 HardwareLevelNames = Literal[*get_enum_names(HardwareLevel)]
 
 
-class HardwareType(Enum):
+class HardwareType(StrEnum):
     sensor = "sensor"
     light = "light"
     cooler = "cooler"
