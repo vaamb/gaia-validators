@@ -22,15 +22,15 @@ def get_enum_names(enum: EnumType) -> list:
 
 
 def safe_enum_from_name(enum: EnumType, name: str | StrEnum) -> StrEnum:
-    if isinstance(name, str):
-        return {i.name: i for i in enum}[name]
-    return name
+    if isinstance(name, enum):
+        return name
+    return {i.name: i for i in enum}[name]
 
 
 def safe_enum_from_value(enum: EnumType, value: str | StrEnum) -> StrEnum:
-    if isinstance(value, str):
-        return {i.value: i for i in enum}[value]
-    return value
+    if isinstance(value, enum):
+        return value
+    return {i.value: i for i in enum}[value]
 
 
 @dataclass()
