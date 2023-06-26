@@ -182,6 +182,11 @@ class DayConfig(BaseModel):
             return time(int(hours), int(minutes))
 
 
+class DayConfigDict(TypedDict):
+    day: time
+    night: time
+
+
 class SkyConfig(DayConfig):
     lighting: LightMethod = LightMethod.fixed
 
