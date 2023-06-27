@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, time
 from enum import EnumType, IntFlag
 from typing import Any, Literal, TypedDict
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel as _BaseModel, Field, validator
 from pydantic.dataclasses import dataclass
@@ -549,6 +550,7 @@ class TurnActuatorPayloadDict(TypedDict):
 
 # Crud payload
 class CrudPayload(BaseModel):
+    uuid: UUID = Field(default_factory=uuid4)
     engine_uid: str
     action: CrudAction
     target: str
