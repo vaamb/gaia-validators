@@ -562,10 +562,28 @@ class CrudPayload(BaseModel):
 
 
 class CrudPayloadDict(TypedDict):
+    uuid: UUID
     engine_uid: str
     action: CrudAction
     target: str
     values: dict
+
+
+class Result(StrEnum):
+    success = "success"
+    failure = "failure"
+
+
+class CrudResult(BaseModel):
+    uuid: UUID
+    status: Result
+    message: str | None = None
+
+
+class CrudResultDict(TypedDict):
+    uuid: UUID
+    status: Result
+    message: str | None
 
 
 class SynchronisationPayload(BaseModel):
