@@ -319,12 +319,12 @@ class HardwareConfigDict(TypedDict):
 # Data and records
 class MeasureRecord(BaseModel):
     measure: str
-    value: float
+    value: float | None
 
 
 class MeasureRecordDict(TypedDict):
     measure: str
-    value: float
+    value: float | None
 
 
 class SensorRecord(BaseModel):
