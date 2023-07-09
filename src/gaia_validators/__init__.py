@@ -548,13 +548,23 @@ class TurnActuatorPayloadDict(TypedDict):
     countdown: float
 
 
+class Route(BaseModel):
+    engine_uid: str
+    ecosystem_uid: str | None = None
+
+
+class RouteDict(TypedDict):
+    engine_uid: str
+    ecosystem_uid: str | None
+
+
 # Crud payload
 class CrudPayload(BaseModel):
     uuid: UUID = Field(default_factory=uuid4)
-    engine_uid: str
+    routing: Route
     action: CrudAction
     target: str
-    values: dict = Field(default_factory=dict)
+    data: str | dict = Field(default_factory=dict)
 
     @validator("action", pre=True)
     def parse_action(cls, value):
@@ -562,11 +572,11 @@ class CrudPayload(BaseModel):
 
 
 class CrudPayloadDict(TypedDict):
-    uuid: UUID
-    engine_uid: str
+    uuid: str
+    routing: RouteDict
     action: CrudAction
     target: str
-    values: dict
+    data: str | dict
 
 
 class Result(StrEnum):
@@ -581,7 +591,7 @@ class CrudResult(BaseModel):
 
 
 class CrudResultDict(TypedDict):
-    uuid: UUID
+    uuid: str
     status: Result
     message: str | None
 
