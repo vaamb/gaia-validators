@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, time
 from enum import EnumType, IntFlag
 from typing import Any, Literal, TypedDict
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel as _BaseModel, Field, validator
 from pydantic.dataclasses import dataclass
@@ -22,15 +23,15 @@ def get_enum_names(enum: EnumType) -> list:
 
 
 def safe_enum_from_name(enum: EnumType, name: str | StrEnum) -> StrEnum:
-    if isinstance(name, str):
-        return {i.name: i for i in enum}[name]
-    return name
+    if isinstance(name, enum):
+        return name
+    return {i.name: i for i in enum}[name]
 
 
 def safe_enum_from_value(enum: EnumType, value: str | StrEnum) -> StrEnum:
-    if isinstance(value, str):
-        return {i.value: i for i in enum}[value]
-    return value
+    if isinstance(value, enum):
+        return value
+    return {i.value: i for i in enum}[value]
 
 
 @dataclass()
@@ -318,12 +319,12 @@ class HardwareConfigDict(TypedDict):
 # Data and records
 class MeasureRecord(BaseModel):
     measure: str
-    value: float
+    value: float | None
 
 
 class MeasureRecordDict(TypedDict):
     measure: str
-    value: float
+    value: float | None
 
 
 class SensorRecord(BaseModel):
@@ -547,12 +548,23 @@ class TurnActuatorPayloadDict(TypedDict):
     countdown: float
 
 
+class Route(BaseModel):
+    engine_uid: str
+    ecosystem_uid: str | None = None
+
+
+class RouteDict(TypedDict):
+    engine_uid: str
+    ecosystem_uid: str | None
+
+
 # Crud payload
 class CrudPayload(BaseModel):
-    engine_uid: str
+    uuid: UUID = Field(default_factory=uuid4)
+    routing: Route
     action: CrudAction
     target: str
-    values: dict = Field(default_factory=dict)
+    data: str | dict = Field(default_factory=dict)
 
     @validator("action", pre=True)
     def parse_action(cls, value):
@@ -560,10 +572,28 @@ class CrudPayload(BaseModel):
 
 
 class CrudPayloadDict(TypedDict):
-    engine_uid: str
+    uuid: str
+    routing: RouteDict
     action: CrudAction
     target: str
-    values: dict
+    data: str | dict
+
+
+class Result(StrEnum):
+    success = "success"
+    failure = "failure"
+
+
+class CrudResult(BaseModel):
+    uuid: UUID
+    status: Result
+    message: str | None = None
+
+
+class CrudResultDict(TypedDict):
+    uuid: str
+    status: Result
+    message: str | None
 
 
 class SynchronisationPayload(BaseModel):
