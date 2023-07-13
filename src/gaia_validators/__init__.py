@@ -611,9 +611,10 @@ class SynchronisationPayloadDict(TypedDict):
     since: datetime | str
 
 
-_imported = (
+_imported = {
     "_BaseModel", "annotations", "Any", "dataclass", "datetime", "EnumType",
-    "Field", "IntFlag", "Literal", "StrEnum", "time", "TypedDict", "field_validator"
-)
+    "Field", "field_validator", "IntFlag", "Literal", "StrEnum", "time",
+    "TypedDict", "UUID", "uuid4"
+}
 
 __all__ = [_ for _ in dir() if _ not in ["_imported", *_imported, *__builtins__]]
