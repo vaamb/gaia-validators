@@ -5,7 +5,7 @@ from enum import EnumType, IntFlag
 from typing import Any, Literal, TypedDict
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel as _BaseModel, Field, validator
+from pydantic import BaseModel as _BaseModel, ConfigDict, Field, field_validator
 from pydantic.dataclasses import dataclass
 
 try:
@@ -49,8 +49,10 @@ class IDs:
 
 
 class BaseModel(_BaseModel):
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+    )
 
 
 # Crud actions
@@ -170,7 +172,7 @@ class DayConfig(BaseModel):
     day: time | None = time(8)
     night: time | None = time(20)
 
-    @validator("day", "night", pre=True)
+    @field_validator("day", "night", mode="before")
     def parse_day(cls, value: str | time | None):
         if value is None or isinstance(value, time):
             return value
@@ -191,7 +193,7 @@ class DayConfigDict(TypedDict):
 class SkyConfig(DayConfig):
     lighting: LightMethod = LightMethod.fixed
 
-    @validator("lighting", pre=True)
+    @field_validator("lighting", mode="before")
     def parse_lighting(cls, value):
         return safe_enum_from_name(LightMethod, value)
 
@@ -218,11 +220,11 @@ class ClimateConfig(BaseModel):
     night: float
     hysteresis: float
 
-    @validator("parameter", pre=True)
+    @field_validator("parameter", mode="before")
     def parse_parameter(cls, value):
         return safe_enum_from_name(ClimateParameter, value)
 
-    @validator("day", "night", "hysteresis", pre=True)
+    @field_validator("day", "night", "hysteresis", mode="before")
     def cast_as_float(cls, value):
         return float(value)
 
@@ -239,7 +241,7 @@ class EnvironmentConfig(BaseModel):
     sky: SkyConfig = Field(default_factory=SkyConfig)
     climate: list[ClimateConfig] = Field(default_factory=list)
 
-    @validator("climate", pre=True)
+    @field_validator("climate", mode="before")
     def format_climate(cls, value: dict | list):
         if isinstance(value, dict):
             return [{"parameter": key, **value} for key, value in value.items()]
@@ -284,18 +286,15 @@ class HardwareConfig(BaseModel):
     plants: list[str] = Field(default_factory=list, alias="plant")
     multiplexer_model: str | None = Field(default=None, alias="multiplexer")
 
-    class Config:
-        allow_population_by_field_name = True
-
-    @validator("type", pre=True)
+    @field_validator("type", mode="before")
     def parse_type(cls, value):
         return safe_enum_from_name(HardwareType, value)
 
-    @validator("level", pre=True)
+    @field_validator("level", mode="before")
     def parse_level(cls, value):
         return safe_enum_from_name(HardwareLevel, value)
 
-    @validator("measures", "plants", pre=True)
+    @field_validator("measures", "plants", mode="before")
     def parse_to_list(cls, value: str | list | None):
         if value is None:
             return []
@@ -397,7 +396,7 @@ class ActuatorState(BaseModel):
     status: bool = False
     mode: ActuatorMode = ActuatorMode.automatic
 
-    @validator("mode", pre=True)
+    @field_validator("mode", mode="before")
     def parse_mode(cls, value):
         return safe_enum_from_name(ActuatorMode, value)
 
@@ -532,11 +531,11 @@ class TurnActuatorPayload(BaseModel):
     mode: ActuatorModePayload = ActuatorModePayload.automatic
     countdown: float = 0.0
 
-    @validator("actuator", pre=True)
+    @field_validator("actuator", mode="before")
     def parse_actuator(cls, value):
         return safe_enum_from_name(HardwareType, value)
 
-    @validator("mode", pre=True)
+    @field_validator("mode", mode="before")
     def parse_mode(cls, value):
         return safe_enum_from_name(ActuatorModePayload, value)
 
@@ -566,7 +565,7 @@ class CrudPayload(BaseModel):
     target: str
     data: str | dict = Field(default_factory=dict)
 
-    @validator("action", pre=True)
+    @field_validator("action", mode="before")
     def parse_action(cls, value):
         return safe_enum_from_name(CrudAction, value)
 
@@ -600,7 +599,7 @@ class SynchronisationPayload(BaseModel):
     ecosystems: list[str]
     since: datetime
 
-    @validator("ecosystems", pre=True)
+    @field_validator("ecosystems", mode="before")
     def parse_ecosystems(cls, value):
         if isinstance(value, str):
             return [value]
@@ -614,7 +613,7 @@ class SynchronisationPayloadDict(TypedDict):
 
 _imported = (
     "_BaseModel", "annotations", "Any", "dataclass", "datetime", "EnumType",
-    "Field", "IntFlag", "Literal", "StrEnum", "time", "TypedDict", "validator"
+    "Field", "IntFlag", "Literal", "StrEnum", "time", "TypedDict", "field_validator"
 )
 
 __all__ = [_ for _ in dir() if _ not in ["_imported", *_imported, *__builtins__]]
