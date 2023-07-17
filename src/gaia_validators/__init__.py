@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, time
 from enum import EnumType, IntFlag
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, NamedTuple, TypedDict
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel as _BaseModel, ConfigDict, Field, field_validator
@@ -316,56 +316,36 @@ class HardwareConfigDict(TypedDict):
 
 
 # Data and records
-class MeasureRecord(BaseModel):
+class MeasureAverage(NamedTuple):
     measure: str
-    value: float | None
+    value: float
+    timestamp: datetime | None = None
 
 
-class MeasureRecordDict(TypedDict):
+class SensorRecord(NamedTuple):
+    sensor_uid: str
     measure: str
-    value: float | None
-
-
-class SensorRecord(BaseModel):
-    sensor_uid: str
-    measures: list[MeasureRecord] = Field(default_factory=list)
-
-
-class SensorRecordDict(TypedDict):
-    sensor_uid: str
-    measures: list[MeasureRecordDict]
+    value: float
+    timestamp: datetime | None = None
 
 
 class SensorsData(BaseModel):
     timestamp: datetime
     records: list[SensorRecord] = Field(default_factory=list)
-    average: list[MeasureRecord] = Field(default_factory=list)
+    average: list[MeasureAverage] = Field(default_factory=list)
 
 
 class SensorsDataDict(TypedDict):
     timestamp: datetime | str
-    records: list[SensorRecordDict]
-    average: list[MeasureRecordDict]
+    records: list[SensorRecord]
+    average: list[MeasureAverage]
 
 
-class HealthRecord(BaseModel):
+class HealthRecord(NamedTuple):
     green: float
     necrosis: float
     index: float
-
-
-class HealthRecordDict(TypedDict):
-    green: float
-    necrosis: float
-    index: float
-
-
-class HealthData(HealthRecord):
-    timestamp: datetime
-
-
-class HealthDataDict(HealthRecordDict):
-    timestamp: datetime | str
+    timestamp: datetime | None
 
 
 class LightingHours(BaseModel):
@@ -517,11 +497,11 @@ class ActuatorsDataPayloadDict(EcosystemPayloadDict):
 
 
 class HealthDataPayload(EcosystemPayload):
-    data: HealthData
+    data: HealthRecord
 
 
 class HealthDataPayloadDict(EcosystemPayloadDict):
-    data: HealthDataDict
+    data: HealthRecord
 
 
 # Actuators payload
