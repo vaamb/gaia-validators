@@ -5,11 +5,11 @@ description = "Validators and types for Gaia and Ouranos"
 authors = [
     {name = "Valentin Ambroise", email = "valentin.ambroise@outlook.com"}
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 readme = "README.md"
 license = {file = "LICENSE"}
 dependencies = [
-    "pydantic~=2.0.2",
+    "pydantic",
 ]
 
 [build-system]

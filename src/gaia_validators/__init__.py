@@ -5,8 +5,39 @@ from enum import EnumType, IntFlag
 from typing import Any, Literal, NamedTuple, TypedDict
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel as _BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    __version__ as pydantic_version, BaseModel as _BaseModel, Field)
 from pydantic.dataclasses import dataclass
+
+if pydantic_version >= "2.0.0":
+    from pydantic import ConfigDict, field_validator
+
+    class BaseModel(_BaseModel):
+        model_config = ConfigDict(
+            from_attributes=True,
+            populate_by_name=True,
+        )
+else:
+    try:
+        from pydantic import field_validator
+    except ImportError:
+        import warnings
+
+        warnings.warn(
+            f"Pydantic version {pydantic_version} loaded. Patching it to be "
+            f"compatible")
+
+        from gaia_validators.patch import patch_pydantic_v1
+
+        patch_pydantic_v1()
+
+        # field_validator has been injected by patch_pydantic_v1
+        from pydantic import field_validator
+    finally:
+        class BaseModel(_BaseModel):
+            class Config:
+                orm_mode = True
+                allow_population_by_field_name = True
 
 try:
     from enum import StrEnum
@@ -48,11 +79,13 @@ class IDs:
         return iter((self.uid, self.name))
 
 
+""" Temporarily removed until a wheel is available for Raspi
 class BaseModel(_BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
         populate_by_name=True,
     )
+"""
 
 
 # Crud actions
