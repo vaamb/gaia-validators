@@ -591,37 +591,41 @@ class CrudPayloadDict(TypedDict):
     data: str | dict
 
 
+# Buffered data payloads
+class BufferedSensorRecord(NamedTuple):
+    ecosystem_uid: str
+    sensor_uid: str
+    measure: str
+    value: float
+    timestamp: datetime
+
+
+class BufferedSensorsDataPayload(BaseModel):
+    data: list[BufferedSensorRecord]
+    uuid: UUID
+
+
+class BufferedSensorsDataPayloadDict(TypedDict):
+    data: list[BufferedSensorRecord]
+    uuid: UUID
+
+
+# Request (CRUD & buffered data saving) results
 class Result(StrEnum):
     success = "success"
     failure = "failure"
 
 
-class CrudResult(BaseModel):
+class RequestResult(BaseModel):
     uuid: UUID
     status: Result
     message: str | None = None
 
 
-class CrudResultDict(TypedDict):
+class RequestResultDict(TypedDict):
     uuid: str
     status: Result
     message: str | None
-
-
-class SynchronisationPayload(BaseModel):
-    ecosystems: list[str]
-    since: datetime
-
-    @field_validator("ecosystems", mode="before")
-    def parse_ecosystems(cls, value):
-        if isinstance(value, str):
-            return [value]
-        return value
-
-
-class SynchronisationPayloadDict(TypedDict):
-    ecosystems: list[str]
-    since: datetime | str
 
 
 _imported = {
