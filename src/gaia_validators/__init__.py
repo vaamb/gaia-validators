@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime, time
-from enum import EnumType, IntFlag
-from typing import Any, Literal, NamedTuple, TypedDict
+from enum import IntFlag
+from typing import Any, Literal, NamedTuple, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
 from pydantic import (
@@ -49,17 +49,20 @@ except ImportError:
             return str.__repr__(self.value)
 
 
-def get_enum_names(enum: EnumType) -> list:
+T = TypeVar("T", bound=StrEnum)
+
+
+def get_enum_names(enum: Type[Enum]) -> list[str]:
     return [i.name for i in enum]
 
 
-def safe_enum_from_name(enum: EnumType, name: str | StrEnum) -> StrEnum:
+def safe_enum_from_name(enum: Type[T], name: str | T) -> T:
     if isinstance(name, enum):
         return name
     return {i.name: i for i in enum}[name]
 
 
-def safe_enum_from_value(enum: EnumType, value: str | StrEnum) -> StrEnum:
+def safe_enum_from_value(enum: Type[T], value: str | T) -> T:
     if isinstance(value, enum):
         return value
     return {i.value: i for i in enum}[value]
