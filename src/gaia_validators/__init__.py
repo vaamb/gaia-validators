@@ -122,7 +122,7 @@ class ManagementFlags(IntFlag):
     watering = 8
     health = 16
     alarms = 32
-    webcam = 64
+    pictures = 64
     database = 128
 
 
@@ -136,7 +136,7 @@ class ManagementConfig(BaseModel):
     watering: bool = False
     health: bool = False
     alarms: bool = False
-    webcam: bool = False
+    pictures: bool = False
     database: bool = False
 
     def to_flag(self) -> int:
@@ -153,9 +153,9 @@ class ManagementConfigDict(TypedDict):
     climate: bool
     watering: bool
     health: bool
-    database: bool
     alarms: bool
-    webcam: bool
+    pictures: bool
+    database: bool
 
 
 # Actuator
