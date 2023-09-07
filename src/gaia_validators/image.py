@@ -3,10 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timezone
 import json
+from pathlib import Path
 from typing import Any, Callable, Self
 import uuid
 
 import numpy as np
+from PIL import Image as PILImage
 
 
 def _default(obj: Any) -> str:
@@ -39,6 +41,12 @@ class Image:
 
     @classmethod
     def from_array(cls, array: np.array, metadata: dict | None = None) -> Self:
+        """Create an Image from a numpy array
+
+        :param array: An image as numpy array
+        :param metadata: Information about the image
+        :return: The Image
+        """
         metadata = metadata or {}
         return cls(
             array=array,
@@ -54,6 +62,13 @@ class Image:
             separator: bytes | None = None,
             deserializer: Callable = _deserializer,
     ) -> Self:
+        """Decode the bytes payload containing an Image and return it
+
+        :param encoded_image: An Image encoded into bytes
+        :param separator: A bytes used as field separator in the bytes payload
+        :param deserializer: A function that takes bytes and returns objects
+        :return: The Image with the info from the payload
+        """
         separator = separator or cls._separator
         elems = encoded_image.split(separator, maxsplit=4)
         depth = elems[2].decode("utf8")
@@ -73,10 +88,11 @@ class Image:
             separator: bytes | None = None,
             serializer: Callable = _serializer,
     ) -> bytes:
-        """
+        """Encode the Image as a bytes payload to send it via a dispatcher
+
         :param separator: A bytes used as field separator in the bytes payload
-        :param serializer: A function that takes an object and returns bytes
-        :return: The image and its metadata encoded as a bytes payload
+        :param serializer: A function that takes objects and returns bytes
+        :return: The Image and its metadata encoded as a bytes payload
         """
         separator = separator or self._separator
         return (
@@ -86,3 +102,34 @@ class Image:
             self.depth.encode("utf8") + separator +
             serializer(self.metadata)
         )
+
+    @classmethod
+    def open(cls, path: Path, metadata: dict | None = None) -> Self:
+        """Open and return a file image
+
+        :param path: The Path from where the Image should be opened
+        :param metadata: The image metadata
+        :return: The Image
+        """
+        metadata = metadata or {}
+        pil_image = PILImage.open(path)
+        array = np.asarray(pil_image)
+        return cls(
+            array=array,
+            shape=array.shape,
+            depth=str(array.dtype),
+            metadata=metadata
+        )
+
+    def save(self, name: Path, extension: str = ".jpeg") -> Path:
+        """Save the Image as a file
+
+        :param name: The Path where the Image should be saved
+        :param extension: The image file extension to use
+        :return: The Path where the Image has been saved
+        """
+        pil_image = PILImage.fromarray(self.array)
+        if not str(name).endswith(extension):
+            name = name/extension
+        pil_image.save(name)
+        return name
