@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime, time
-from enum import IntFlag
-from typing import Any, Literal, NamedTuple, Type, TypedDict, TypeVar
+from enum import Enum, IntFlag
+from typing import Any, Literal, NamedTuple, Self, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
 from pydantic import (
@@ -42,30 +42,50 @@ else:
 try:
     from enum import StrEnum
 except ImportError:
-    from enum import Enum
-
     class StrEnum(str, Enum):
         def __repr__(self) -> str:
             return str.__repr__(self.value)
 
 
-T = TypeVar("T", bound=StrEnum)
+T = TypeVar("T", bound=Enum)
 
 
-def get_enum_names(enum: Type[Enum]) -> list[str]:
+def _get_enum_names(enum: Type[Enum]) -> list[str]:
     return [i.name for i in enum]
 
 
 def safe_enum_from_name(enum: Type[T], name: str | T) -> T:
+    """Return the enum member whose name is 'name'
+
+    :param enum: An enum that should contain an element named 'name'
+    :param name: The name of an enum element, or an element of the enum
+    :return: An enum element
+    """
     if isinstance(name, enum):
+        if not isinstance(name, enum):
+            raise ValueError(f"'{name}' does not belong to {enum}")
         return name
-    return {i.name: i for i in enum}[name]
+    try:
+        return getattr(enum, name)
+    except AttributeError:
+        raise ValueError(f"'{name}' is not a valid {enum} name")
 
 
 def safe_enum_from_value(enum: Type[T], value: str | T) -> T:
+    """Return the enum member whose value is 'value'
+
+    :param enum: An enum that should contain an element with the value 'value'
+    :param value: The value of an enum element, or an element of the enum
+    :return: An enum element
+    """
     if isinstance(value, enum):
+        if not isinstance(value, enum):
+            raise ValueError(f"'{value}' does not belong to {enum}")
         return value
-    return {i.value: i for i in enum}[value]
+    try:
+        return enum(value)
+    except ValueError:
+        raise ValueError(f"'{value}' is not a valid {enum} value")
 
 
 @dataclass()
@@ -126,7 +146,7 @@ class ManagementFlags(IntFlag):
     database = 128
 
 
-ManagementNames = Literal[*get_enum_names(ManagementFlags)]
+ManagementNames = Literal[*_get_enum_names(ManagementFlags)]  # noqa: works when imported
 
 
 class ManagementConfig(BaseModel):
@@ -141,10 +161,20 @@ class ManagementConfig(BaseModel):
 
     def to_flag(self) -> int:
         flag = 0
-        for management in get_enum_names(ManagementFlags):
-            if getattr(self, management):
-                flag += getattr(ManagementFlags, management)
+        for management in ManagementFlags:
+            try:
+                if getattr(self, management.name):
+                    flag += management
+            except AttributeError:
+                pass
         return flag
+
+    @classmethod
+    def from_flag(cls, flag: int | ManagementFlags) -> Self:
+        if isinstance(flag, int):
+            flag = ManagementFlags(flag)
+        payload = {management.name: True for management in flag}
+        return cls(**payload)
 
 
 class ManagementConfigDict(TypedDict):
@@ -164,7 +194,7 @@ class ActuatorMode(StrEnum):
     manual = "manual"
 
 
-ActuatorModeNames = Literal[*get_enum_names(ActuatorMode)]
+ActuatorModeNames = Literal[*_get_enum_names(ActuatorMode)]  # noqa: works when imported
 
 
 class ActuatorStatus(StrEnum):
@@ -172,7 +202,7 @@ class ActuatorStatus(StrEnum):
     off = "off"
 
 
-ActuatorStatusNames = Literal[*get_enum_names(ActuatorStatus)]
+ActuatorStatusNames = Literal[*_get_enum_names(ActuatorStatus)]  # noqa: works when imported
 
 
 class ActuatorModePayload(StrEnum):
@@ -188,7 +218,7 @@ class LightMethod(StrEnum):
     mimic = "mimic"
 
 
-LightMethodNames = Literal[*get_enum_names(LightMethod)]
+LightMethodNames = Literal[*_get_enum_names(LightMethod)]  # noqa: works when imported
 
 
 # Climate
@@ -247,7 +277,7 @@ class ClimateParameter(StrEnum):
     wind = "wind"
 
 
-ClimateParameterNames = Literal[*get_enum_names(ClimateParameter)]
+ClimateParameterNames = Literal[*_get_enum_names(ClimateParameter)]  # noqa: works when imported
 
 
 class ClimateConfig(BaseModel):
@@ -266,7 +296,7 @@ class ClimateConfig(BaseModel):
 
 
 class ClimateConfigDict(TypedDict):
-    parameter: ClimateParameter | ClimateParameterNames
+    parameter: ClimateParameter
     day: float
     night: float
     hysteresis: float
@@ -296,7 +326,7 @@ class HardwareLevel(StrEnum):
     plants = "plants"
 
 
-HardwareLevelNames = Literal[*get_enum_names(HardwareLevel)]
+HardwareLevelNames = Literal[*_get_enum_names(HardwareLevel)]  # noqa: works when imported
 
 
 class HardwareType(StrEnum):
@@ -308,7 +338,7 @@ class HardwareType(StrEnum):
     dehumidifier = "dehumidifier"
 
 
-HardwareTypeNames = Literal[*get_enum_names(HardwareType)]
+HardwareTypeNames = Literal[*_get_enum_names(HardwareType)]  # noqa: works when imported
 
 
 class HardwareConfig(BaseModel):
