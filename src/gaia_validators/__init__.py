@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 from enum import Enum, IntFlag
 from typing import Any, Literal, NamedTuple, Self, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
@@ -701,11 +701,18 @@ class SunTimes(BaseModel):
 
     Used by Gaia.
     """
-    twilight_begin: time
+    twilight_begin: time = Field(alias="civil_twilight_begin")
     sunrise: time
     sunset: time
-    twilight_end: time
+    twilight_end: time = Field(alias="civil_twilight_end")
 
+    @field_validator("twilight_begin", "sunrise", "sunset", "twilight_end", mode="before")
+    def parse_time(cls, value):
+        if isinstance(value, str):
+            dt = datetime.strptime(value, "%I:%M:%S %p")
+            dt.astimezone(timezone.utc)
+            return dt.time()
+        return value
 
 class SunTimesDict(TypedDict):
     """Cf. related BaseModel."""
