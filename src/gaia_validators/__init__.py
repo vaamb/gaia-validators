@@ -5,39 +5,8 @@ from enum import Enum, IntFlag
 from typing import Any, Literal, NamedTuple, Self, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
-from pydantic import (
-    __version__ as pydantic_version, BaseModel as _BaseModel, Field)
+from pydantic import BaseModel as _BaseModel, ConfigDict, Field, field_validator
 from pydantic.dataclasses import dataclass
-
-if pydantic_version >= "2.0.0":
-    from pydantic import ConfigDict, field_validator
-
-    class BaseModel(_BaseModel):
-        model_config = ConfigDict(
-            from_attributes=True,
-            populate_by_name=True,
-        )
-else:
-    try:
-        from pydantic import field_validator
-    except ImportError:
-        import warnings
-
-        warnings.warn(
-            f"Pydantic version {pydantic_version} loaded. Patching it to be "
-            f"compatible")
-
-        from gaia_validators.patch import patch_pydantic_v1
-
-        patch_pydantic_v1()
-
-        # field_validator has been injected by patch_pydantic_v1
-        from pydantic import field_validator
-    finally:
-        class BaseModel(_BaseModel):
-            class Config:
-                orm_mode = True
-                allow_population_by_field_name = True
 
 try:
     from enum import StrEnum
@@ -86,6 +55,21 @@ def safe_enum_from_value(enum: Type[T], value: str | T) -> T:
         return enum(value)
     except ValueError:
         raise ValueError(f"'{value}' is not a valid {enum} value")
+
+
+class LaxBaseModel(_BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+    )
+
+
+class BaseModel(_BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        from_attributes=True,
+        populate_by_name=True,
+    )
 
 
 @dataclass()
@@ -696,7 +680,7 @@ class ActuatorsDataDict(TypedDict):
 
 
 # Others
-class SunTimes(BaseModel):
+class SunTimes(LaxBaseModel):
     """Information about sunrise and sunset events for a given place.
 
     Used by Gaia.
