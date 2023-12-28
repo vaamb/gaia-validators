@@ -644,6 +644,7 @@ class ActuatorState(BaseModel):
     """
     active: bool = False
     status: bool = False
+    level: float | None = None
     mode: ActuatorMode = ActuatorMode.automatic
 
     @field_validator("mode", mode="before")
@@ -655,6 +656,7 @@ class ActuatorStateDict(TypedDict):
     """Cf. related BaseModel."""
     active: bool
     status: bool
+    level: float | None
     mode: ActuatorMode
 
 
