@@ -98,6 +98,9 @@ class IDs:
         return iter((self.uid, self.name))
 
 
+EcosystemIDs = IDs
+
+
 """ Temporarily removed until a wheel is available for Raspi
 class BaseModel(_BaseModel):
     model_config = ConfigDict(
