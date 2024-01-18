@@ -453,6 +453,7 @@ class HardwareType(IntFlag):
     actuator = light | heater | cooler | humidifier | dehumidifier | fan
     temperature_actuator = heater | cooler
     humidity_actuator = humidifier | dehumidifier
+    climate_actuator = temperature_actuator | humidity_actuator
 
 
 HardwareTypeNames = Literal[*_get_enum_names(HardwareType)]  # noqa: works when imported
