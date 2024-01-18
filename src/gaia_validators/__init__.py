@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, time, timezone
-from enum import Enum, IntFlag
+from enum import auto, Enum, IntFlag
 from typing import Any, Literal, NamedTuple, Self, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
@@ -449,6 +449,7 @@ class HardwareType(StrEnum):
     humidifier = "humidifier"
     dehumidifier = "dehumidifier"
     fan = "fan"
+    camera = "camera"
 
 
 HardwareTypeNames = Literal[*_get_enum_names(HardwareType)]  # noqa: works when imported
@@ -498,8 +499,8 @@ class AnonymousHardwareConfigDict(TypedDict):
     """Cf. related BaseModel."""
     name: str
     address: str
-    type: str
-    level: str
+    type: HardwareType
+    level: HardwareLevel
     model: str
     measures: list[str]
     plants: list[str]
