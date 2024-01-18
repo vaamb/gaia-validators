@@ -448,6 +448,7 @@ class HardwareType(StrEnum):
     heater = "heater"
     humidifier = "humidifier"
     dehumidifier = "dehumidifier"
+    fan = "fan"
 
 
 HardwareTypeNames = Literal[*_get_enum_names(HardwareType)]  # noqa: works when imported
