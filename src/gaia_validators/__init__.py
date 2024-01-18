@@ -440,16 +440,19 @@ class HardwareLevel(StrEnum):
 HardwareLevelNames = Literal[*_get_enum_names(HardwareLevel)]  # noqa: works when imported
 
 
-class HardwareType(StrEnum):
+class HardwareType(IntFlag):
     """Types of hardware possible"""
-    sensor = "sensor"
-    light = "light"
-    cooler = "cooler"
-    heater = "heater"
-    humidifier = "humidifier"
-    dehumidifier = "dehumidifier"
-    fan = "fan"
-    camera = "camera"
+    sensor = auto()
+    light = auto()
+    heater = auto()
+    cooler = auto()
+    humidifier = auto()
+    dehumidifier = auto()
+    fan = auto()
+    camera = auto()
+    actuator = light | heater | cooler | humidifier | dehumidifier | fan
+    temperature_actuator = heater | cooler
+    humidity_actuator = humidifier | dehumidifier
 
 
 HardwareTypeNames = Literal[*_get_enum_names(HardwareType)]  # noqa: works when imported
