@@ -483,6 +483,8 @@ class AnonymousHardwareConfig(BaseModel):
 
     @field_validator("type", mode="before")
     def parse_type(cls, value):
+        if isinstance(value, int):
+            return HardwareType(value)
         return safe_enum_from_name(HardwareType, value)
 
     @field_validator("level", mode="before")
@@ -855,6 +857,8 @@ class TurnActuatorPayload(BaseModel):
 
     @field_validator("actuator", mode="before")
     def parse_actuator(cls, value):
+        if isinstance(value, int):
+            return HardwareType(value)
         return safe_enum_from_name(HardwareType, value)
 
     @field_validator("mode", mode="before")
