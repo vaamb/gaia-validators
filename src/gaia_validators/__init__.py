@@ -496,7 +496,7 @@ class AnonymousHardwareConfig(BaseModel):
         if value is None:
             return []
         if isinstance(value, str):
-            return _format_hardware_list(value)
+            return [_format_hardware_list(v) for v in value.split(",")]
         if isinstance(value, list):
             return [_format_hardware_list(v) for v in value]
 
