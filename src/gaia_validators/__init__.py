@@ -336,6 +336,7 @@ class SkyConfig(DayConfig):
     Used by Gaia ecosystems configuration file.
     """
     lighting: LightMethod = LightMethod.fixed
+    target: str | None = None
 
     @field_validator("lighting", mode="before")
     def parse_lighting(cls, value):
@@ -347,6 +348,7 @@ class SkyConfigDict(TypedDict):
     day:  time | None | str
     night:  time | None | str
     lighting: str
+    target: str | None
 
 
 class ClimateParameter(StrEnum):
