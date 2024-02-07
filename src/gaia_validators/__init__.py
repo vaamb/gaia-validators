@@ -375,10 +375,18 @@ class AnonymousClimateConfig(BaseModel):
     """
     day: float
     night: float
-    hysteresis: float
+    hysteresis: float | None = None
 
-    @field_validator("day", "night", "hysteresis", mode="before")
+    @field_validator("day", "night", mode="before")
     def cast_as_float(cls, value):
+        return float(value)
+
+    @field_validator("hysteresis", mode="before")
+    def cast_as_float_or_none(cls, value):
+        if value is None:
+            return None
+        if value == 0:
+            return None
         return float(value)
 
 
@@ -386,7 +394,7 @@ class AnonymousClimateConfigDict(TypedDict):
     """Cf. related BaseModel."""
     day: float
     night: float
-    hysteresis: float
+    hysteresis: float | None
 
 
 class ClimateConfig(AnonymousClimateConfig):
