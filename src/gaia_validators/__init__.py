@@ -708,7 +708,10 @@ class SunTimes(LaxBaseModel):
     @field_validator("twilight_begin", "sunrise", "sunset", "twilight_end", mode="before")
     def parse_time(cls, value):
         if isinstance(value, str):
-            dt = datetime.strptime(value, "%I:%M:%S %p")
+            try:
+                dt = datetime.strptime(value, "%H:%M:%S")
+            except ValueError:
+                dt = datetime.strptime(value, "%I:%M:%S %p")
             dt.astimezone(timezone.utc)
             return dt.time()
         return value
