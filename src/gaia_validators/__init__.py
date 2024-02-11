@@ -651,6 +651,20 @@ class LightData(LightingHours):
     """
     method: LightMethod = LightMethod.fixed
 
+    @classmethod
+    def from_lighting_hours(
+            cls,
+            lighting_hours: LightingHours,
+            method: LightMethod
+    ) -> Self:
+        return cls(
+            morning_start=lighting_hours.morning_start,
+            morning_end=lighting_hours.morning_end,
+            evening_start=lighting_hours.evening_start,
+            evening_end=lighting_hours.evening_end,
+            method=method,
+        )
+
 
 class LightDataDict(LightingHoursDict):
     """Cf. related BaseModel."""
