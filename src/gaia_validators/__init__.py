@@ -705,6 +705,7 @@ class ActuatorsData(BaseModel):
     heater: ActuatorState = ActuatorState()
     humidifier: ActuatorState = ActuatorState()
     dehumidifier: ActuatorState = ActuatorState()
+    fan: ActuatorState = ActuatorState()
 
 
 class ActuatorsDataDict(TypedDict):
@@ -714,6 +715,7 @@ class ActuatorsDataDict(TypedDict):
     heater: ActuatorStateDict
     humidifier: ActuatorStateDict
     dehumidifier: ActuatorStateDict
+    fan: ActuatorsDataDict
 
 
 # Others
