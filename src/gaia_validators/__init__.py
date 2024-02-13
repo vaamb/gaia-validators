@@ -313,6 +313,14 @@ class TimeWindowDict(TypedDict):
     end: datetime | None
 
 
+class ChaosParameters(ChaosConfig):
+    time_window: TimeWindow = Field(default_factory=TimeWindow)
+
+
+class ChaosParametersDict(ChaosConfigDict):
+    time_window: TimeWindow | TimeWindowDict
+
+
 class DayConfig(BaseModel):
     """Info about the day and night times.
 
