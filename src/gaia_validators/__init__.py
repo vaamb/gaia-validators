@@ -894,6 +894,16 @@ class HealthDataPayloadDict(EcosystemPayloadDict):
     data: HealthRecord
 
 
+class ChaosParametersPayload(EcosystemPayload):
+    """Payload to send 'ChaosParameters' from Gaia to Ouranos."""
+    data: ChaosParameters
+
+
+class ChaosParametersPayloadDict(EcosystemPayloadDict):
+    """Payload to send 'ChaosParameters' from Gaia to Ouranos."""
+    data: ChaosParametersDict
+
+
 # Actuators payload
 class TurnActuatorPayload(BaseModel):
     """Payload from Ouranos to Gaia to request a change in mode for a type of
