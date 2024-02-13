@@ -295,6 +295,24 @@ class ChaosConfigDict(TypedDict):
     intensity: float
 
 
+class TimeWindow(BaseModel):
+    beginning: datetime | None = None
+    end: datetime | None = None
+
+    @field_validator("beginning", "end", mode="before")
+    def parse_time(cls, value):
+        if isinstance(value, str):
+            dt = datetime.fromisoformat(value)
+            dt.astimezone(timezone.utc)
+            return dt
+        return value
+
+
+class TimeWindowDict(TypedDict):
+    beginning: datetime | None
+    end: datetime | None
+
+
 class DayConfig(BaseModel):
     """Info about the day and night times.
 
