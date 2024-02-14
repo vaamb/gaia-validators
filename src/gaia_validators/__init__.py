@@ -744,7 +744,23 @@ class ActuatorsDataDict(TypedDict):
     fan: ActuatorsDataDict
 
 
-# Others
+# Places
+class Coordinates(NamedTuple):
+    latitude: float
+    longitude: float
+
+
+class Place(BaseModel):
+    name: str
+    coordinates: Coordinates
+
+
+class PlaceDict(TypedDict):
+    name: str
+    coordinates: Coordinates
+
+
+# Sun times
 class SunTimes(LaxBaseModel):
     """Information about sunrise and sunset events for a given place.
 
