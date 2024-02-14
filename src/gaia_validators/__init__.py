@@ -339,7 +339,7 @@ class DayConfig(BaseModel):
         try:
             return time.fromisoformat(value)
         except ValueError:
-            if not "h" in value.lower():
+            if "h" not in value.lower():
                 raise ValueError(
                     "Wrong time format. It should either be written in a valid"
                     "ISO format or as 'hours'H'minutes'"
@@ -782,6 +782,7 @@ class SunTimes(LaxBaseModel):
             return dt.time()
         return value
 
+
 class SunTimesDict(TypedDict):
     """Cf. related BaseModel."""
     twilight_begin: time
@@ -926,7 +927,7 @@ class ChaosParametersPayload(EcosystemPayload):
 
 
 class ChaosParametersPayloadDict(EcosystemPayloadDict):
-    """Payload to send 'ChaosParameters' from Gaia to Ouranos."""
+    """Cf. related BaseModel."""
     data: ChaosParametersDict
 
 
