@@ -827,6 +827,16 @@ class EcosystemPayloadDict(TypedDict):
     uid: str
 
 
+class PlacesPayload(EcosystemPayload):
+    """Payload to send 'Place' from Gaia to Ouranos."""
+    data: list[Place]
+
+
+class PlacesPayloadDict(EcosystemPayloadDict):
+    """Payload to send 'Place' from Gaia to Ouranos."""
+    data: list[Place]
+
+
 # Config Payload
 class BaseInfoConfigPayload(EcosystemPayload):
     """Payload to send 'BaseInfoConfig' from Gaia to Ouranos."""
