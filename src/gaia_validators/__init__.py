@@ -495,11 +495,6 @@ class HardwareType(IntFlag):
 HardwareTypeNames = Literal[*_get_enum_names(HardwareType)]  # noqa: works when imported
 
 
-def _format_hardware_list(measure: str) -> str:
-    measure = measure.replace(" ", "_")
-    return measure.lower()
-
-
 class AnonymousHardwareConfig(BaseModel):
     """Configuration info for a single unidentified piece of hardware.
 
@@ -532,9 +527,8 @@ class AnonymousHardwareConfig(BaseModel):
         if value is None:
             return []
         if isinstance(value, str):
-            return [_format_hardware_list(v) for v in value.split(",")]
-        if isinstance(value, list):
-            return [_format_hardware_list(v) for v in value]
+            return [value]
+        return value
 
 
 class AnonymousHardwareConfigDict(TypedDict):
