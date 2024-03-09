@@ -5,7 +5,8 @@ from enum import auto, Enum, IntFlag
 from typing import Any, Literal, NamedTuple, Self, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel as _BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    BaseModel as _BaseModel, ConfigDict, Field, field_validator, field_serializer)
 from pydantic.dataclasses import dataclass
 
 try:
@@ -495,6 +496,16 @@ class HardwareType(IntFlag):
 HardwareTypeNames = Literal[*_get_enum_names(HardwareType)]  # noqa: works when imported
 
 
+class Measure(BaseModel):
+    name: str
+    unit: str | None = None
+
+
+class MeasureDict(TypedDict):
+    name: str
+    unit: str | None
+
+
 class AnonymousHardwareConfig(BaseModel):
     """Configuration info for a single unidentified piece of hardware.
 
@@ -508,7 +519,7 @@ class AnonymousHardwareConfig(BaseModel):
     type: HardwareType
     level: HardwareLevel
     model: str
-    measures: list[str] = Field(default_factory=list, alias="measure")
+    measures: list[Measure] = Field(default_factory=list, alias="measure")
     plants: list[str] = Field(default_factory=list, alias="plant")
     multiplexer_model: str | None = Field(default=None, alias="multiplexer")
 
@@ -522,8 +533,27 @@ class AnonymousHardwareConfig(BaseModel):
     def parse_level(cls, value):
         return safe_enum_from_name(HardwareLevel, value)
 
-    @field_validator("measures", "plants", mode="before")
-    def parse_to_list(cls, value: str | list[str] | None):
+    @field_validator("measures", mode="before")
+    def parse_measures(cls, value: str | list[str] | None):
+        if value is None:
+            return []
+        if isinstance(value, str):
+            value = value
+        rv = []
+        for v in value:
+            if isinstance(v, str):
+                v_split = v.split("|")
+                name = v_split[0]
+                try:
+                    unit = v_split[1]
+                except IndexError:
+                    unit = None
+                v = {"name": name, "unit": unit}
+            rv.append(v)
+        return rv
+
+    @field_validator("plants", mode="before")
+    def parse_plants(cls, value: str | list[str] | None):
         if value is None:
             return []
         if isinstance(value, str):
@@ -538,7 +568,7 @@ class AnonymousHardwareConfigDict(TypedDict):
     type: HardwareType
     level: HardwareLevel
     model: str
-    measures: list[str]
+    measures: list[MeasureDict]
     plants: list[str]
     multiplexer_model: str | None
 
