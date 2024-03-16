@@ -519,9 +519,9 @@ class AnonymousHardwareConfig(BaseModel):
     type: HardwareType
     level: HardwareLevel
     model: str
-    measures: list[Measure] = Field(default_factory=list, alias="measure")
-    plants: list[str] = Field(default_factory=list, alias="plant")
-    multiplexer_model: str | None = Field(default=None, alias="multiplexer")
+    measures: list[Measure] = Field(default_factory=list, validation_alias="measure")
+    plants: list[str] = Field(default_factory=list, validation_alias="plant")
+    multiplexer_model: str | None = Field(default=None, validation_alias="multiplexer")
 
     @field_validator("type", mode="before")
     def parse_type(cls, value):
@@ -790,10 +790,10 @@ class SunTimes(LaxBaseModel):
 
     Used by Gaia.
     """
-    twilight_begin: time = Field(alias="civil_twilight_begin")
+    twilight_begin: time = Field(validation_alias="civil_twilight_begin")
     sunrise: time
     sunset: time
-    twilight_end: time = Field(alias="civil_twilight_end")
+    twilight_end: time = Field(validation_alias="civil_twilight_end")
 
     @field_validator("twilight_begin", "sunrise", "sunset", "twilight_end", mode="before")
     def parse_time(cls, value):
