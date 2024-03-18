@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, time, timezone
+from datetime import date, datetime, time, timezone
 from enum import auto, Enum, IntFlag
 from typing import Any, Literal, NamedTuple, Self, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
@@ -802,7 +802,6 @@ class SunTimes(LaxBaseModel):
                 dt = datetime.strptime(value, "%H:%M:%S")
             except ValueError:
                 dt = datetime.strptime(value, "%I:%M:%S %p")
-            dt.astimezone(timezone.utc)
             return dt.time()
         return value
 
