@@ -790,12 +790,12 @@ class SunTimes(LaxBaseModel):
 
     Used by Gaia.
     """
-    twilight_begin: time = Field(validation_alias="civil_twilight_begin")
+    civil_dawn: time = Field(validation_alias="civil_twilight_begin")
     sunrise: time
     sunset: time
-    twilight_end: time = Field(validation_alias="civil_twilight_end")
+    civil_dusk: time = Field(validation_alias="civil_twilight_end")
 
-    @field_validator("twilight_begin", "sunrise", "sunset", "twilight_end", mode="before")
+    @field_validator("civil_dawn", "sunrise", "sunset", "civil_dusk", mode="before")
     def parse_time(cls, value):
         if isinstance(value, str):
             try:
@@ -808,10 +808,10 @@ class SunTimes(LaxBaseModel):
 
 class SunTimesDict(TypedDict):
     """Cf. related BaseModel."""
-    twilight_begin: time
+    civil_dawn: time
     sunrise: time
     sunset: time
-    twilight_end: time
+    civil_dusk: time
 
 
 # Broker payloads
