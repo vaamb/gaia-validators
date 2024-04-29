@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, time, timezone
-from enum import auto, Enum, IntFlag
+from enum import auto, Enum, IntEnum, IntFlag
 from typing import Any, Literal, NamedTuple, Self, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
@@ -55,6 +55,10 @@ def safe_enum_from_value(enum: Type[T], value: str | T) -> T:
         return enum(value)
     except ValueError:
         raise ValueError(f"'{value}' is not a valid {enum} value")
+
+
+def _now() -> datetime:
+    return datetime.now(tz=timezone.utc)
 
 
 class LaxBaseModel(_BaseModel):
@@ -116,6 +120,21 @@ class CrudAction(StrEnum):
     get = "get"  # Don't like "read"
     update = "update"
     delete = "delete"
+
+
+# Warnings
+class WarningLevel(IntEnum):
+    low = 0
+    moderate = 1
+    high = 2
+    severe = 3
+    critical = 4
+
+
+class Position(Enum):
+    under = -1
+    none = 0
+    above = 1
 
 
 # Config
@@ -601,7 +620,7 @@ class HardwareConfigDict(AnonymousHardwareConfigDict):
     uid: str
 
 
-# Data and records
+# Data, records and warnings
 class MeasureAverage(NamedTuple):
     """Averaged sensor data for a measure
 
@@ -638,6 +657,18 @@ class SensorRecord(NamedTuple):
     timestamp: datetime | None = None
 
 
+class SensorAlarm(NamedTuple):
+    """A warning created by Gaia when an ecosystem encounters an issue.
+
+    Used by Gaia and Ouranos.
+    """
+    sensor_uid: str
+    measure: str
+    position: Position
+    delta: float
+    level: WarningLevel
+
+
 class SensorsData(BaseModel):
     """A collection of all the sensor measurements for one ecosystem at one time
     point.
@@ -646,9 +677,10 @@ class SensorsData(BaseModel):
 
     Used by Gaia sensors subroutine and as part of a payload sent between Gaia
     and Ouranos."""
-    timestamp: datetime
+    timestamp: datetime = Field(default_factory=_now)
     records: list[SensorRecord] = Field(default_factory=list)
     average: list[MeasureAverage] = Field(default_factory=list)
+    alarms: list[SensorAlarm] = Field(default_factory=list)
 
 
 class SensorsDataDict(TypedDict):
@@ -656,6 +688,7 @@ class SensorsDataDict(TypedDict):
     timestamp: datetime | str
     records: list[SensorRecord]
     average: list[MeasureAverage]
+    alarms: list[SensorAlarm]
 
 
 class HealthRecord(NamedTuple):
