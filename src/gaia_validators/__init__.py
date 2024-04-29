@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from datetime import date, datetime, time, timezone
+from datetime import datetime, time, timezone
 from enum import auto, Enum, IntFlag
 from typing import Any, Literal, NamedTuple, Self, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
-from pydantic import (
-    BaseModel as _BaseModel, ConfigDict, Field, field_validator, field_serializer)
+from pydantic import BaseModel as _BaseModel, ConfigDict, Field, field_validator
 from pydantic.dataclasses import dataclass
 
 try:
@@ -100,15 +99,6 @@ class IDs:
 
 
 EcosystemIDs = IDs
-
-
-""" Temporarily removed until a wheel is available for Raspi
-class BaseModel(_BaseModel):
-    model_config = ConfigDict(
-        from_attributes=True,
-        populate_by_name=True,
-    )
-"""
 
 
 # Crud actions
@@ -606,7 +596,7 @@ class HardwareConfigDict(AnonymousHardwareConfigDict):
 
 # Data and records
 class MeasureAverage(NamedTuple):
-    """The
+    """Averaged sensor data for a measure
 
     :arg measure: the name of the measure taken.
     :arg value: the average value of the measurement taken by all the sensors.
