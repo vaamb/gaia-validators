@@ -101,6 +101,11 @@ class IDs:
 EcosystemIDs = IDs
 
 
+class PeriodOfDay(Enum):
+    day = auto()
+    night = auto()
+
+
 # Crud actions
 class CrudAction(StrEnum):
     """Possible crud actions.
