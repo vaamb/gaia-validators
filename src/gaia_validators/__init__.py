@@ -150,14 +150,29 @@ class ManagementFlags(IntFlag):
     Used by Ouranos to save the info in the database while allowing to add new
     subroutines in the future.
     """
+    # Basal managements
     sensors = 1
     light = 2
-    climate = 4
-    watering = 8
-    health = 16
-    alarms = 32
-    pictures = 64
-    database = 128
+    camera = 4
+    database = 8
+    # available basal management = 16
+    # available basal management = 32
+    # available basal management = 64
+    # available basal management = 128
+
+    # Managements with dependencies
+    alarms = 256
+    climate = 512
+    watering = 1024
+    health = 2048
+    pictures = 4096
+
+    # Checks for managements with dependencies
+    alarms_enabled = sensors | alarms
+    climate_enabled = sensors | climate
+    watering_enabled = sensors | watering
+    health_enabled = camera | health
+    pictures_enabled = camera | pictures
 
 
 ManagementNames = Literal[*_get_enum_names(ManagementFlags)]  # noqa: works when imported
@@ -179,11 +194,12 @@ class ManagementConfig(BaseModel):
 
     def to_flag(self) -> int:
         flag = 0
-        for management in ManagementFlags:
+        for management, value in self.__dict__.items():
+            if not value:
+                continue
             try:
-                if getattr(self, management.name):
-                    flag += management
-            except AttributeError:
+                flag += safe_enum_from_name(ManagementFlags, management)
+            except ValueError:
                 pass
         return flag
 
@@ -403,12 +419,13 @@ class AnonymousClimateConfig(BaseModel):
     day: float
     night: float
     hysteresis: float | None = None
+    alarm: float | None = None
 
     @field_validator("day", "night", mode="before")
     def cast_as_float(cls, value):
         return float(value)
 
-    @field_validator("hysteresis", mode="before")
+    @field_validator("hysteresis", "alarm", mode="before")
     def cast_as_float_or_none(cls, value):
         if value is None:
             return None
@@ -422,6 +439,7 @@ class AnonymousClimateConfigDict(TypedDict):
     day: float
     night: float
     hysteresis: float | None
+    alarm: float | None
 
 
 class ClimateConfig(AnonymousClimateConfig):
