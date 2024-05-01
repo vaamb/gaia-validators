@@ -180,12 +180,14 @@ class ManagementConfig(BaseModel):
     """
     sensors: bool = False
     light: bool = False
+    camera: bool = False
+    database: bool = False
+
+    alarms: bool = False
     climate: bool = False
     watering: bool = False
     health: bool = False
-    alarms: bool = False
     pictures: bool = False
-    database: bool = False
 
     def to_flag(self) -> int:
         flag = 0
@@ -210,12 +212,14 @@ class ManagementConfigDict(TypedDict):
     """Cf. related BaseModel."""
     sensors: bool
     light: bool
+    camera: bool
+    database: bool
+
+    alarms: bool
     climate: bool
     watering: bool
     health: bool
-    alarms: bool
     pictures: bool
-    database: bool
 
 
 # Actuator
