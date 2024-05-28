@@ -286,21 +286,37 @@ class ActuatorModePayload(StrEnum):
 
 
 # Light
-class LightMethod(StrEnum):
-    """Lighting method.
+class NycthemeralSpanMethod(IntFlag):
+    """Lighting hours span.
 
-    If 'fixed', lights will be on between 'DayConfig.day' and 'DayConfig.night'.
-    If 'elongate', lights will be on between 'DayConfig.day' and a bit after
-    sunrise, and between a bit before sunset and 'DayConfig.night'. Sunrise and
-    sunset times are downloaded from the internet.
-    If 'mimic', lights will be on between the sunrise and sunset of a specified
-    place.
+    If 'fixed', 'LightingHours.morning_start' and 'LightingHours.evening_end'
+    will be set to 'DayConfig.day' and 'DayConfig.night', respectively.
+    If 'mimic', 'LightingHours.morning_start' and 'LightingHours.evening_end'
+    will be computed based on the sunrise and sunset times of a place specified
+    by 'environment.nycthemeral_cycle.target'
 
     Used by Gaia and Ouranos.
     """
-    fixed = "fixed"
-    elongate = "elongate"
-    mimic = "mimic"
+    fixed = 0
+    mimic = 2
+
+
+class LightingMethod(IntFlag):
+    """Lighting method.
+
+    If 'fixed', lights will be on between 'LightingHours.morning_start' and
+    'LightingHours.evening_end'.
+    If 'elongate', lights will be on between 'LightingHours.morning_start' and
+    'LightingHours.morning_end', and 'LightingHours.evening_start' and
+    'LightingHours.evening_end' (if possible).
+
+    Used by Gaia and Ouranos.
+    """
+    fixed = 0
+    elongate = 1
+
+
+LightMethod = LightingMethod
 
 
 LightMethodNames = Literal[*_get_enum_names(LightMethod)]  # noqa: works when imported
@@ -356,7 +372,7 @@ class ChaosParametersDict(ChaosConfigDict):
     time_window: TimeWindow | TimeWindowDict
 
 
-class DayConfig(BaseModel):
+class NycthemeralSpanConfig(BaseModel):
     """Info about the day and night times.
 
     Used by Gaia ecosystems configuration file.
@@ -385,31 +401,43 @@ class DayConfig(BaseModel):
             return time(int(hours), int(minutes))
 
 
-class DayConfigDict(TypedDict):
+class NycthemeralSpanConfigDict(TypedDict):
     """Cf. related BaseModel."""
     day: time
     night: time
 
 
-class SkyConfig(DayConfig):
+class NycthemeralCycleConfig(NycthemeralSpanConfig):
     """An augmented version of `DayConfig` with the light method added.
 
     Used by Gaia ecosystems configuration file.
     """
-    lighting: LightMethod = LightMethod.fixed
+    span: NycthemeralSpanMethod = NycthemeralSpanMethod.fixed
+    lighting: LightingMethod = LightingMethod.fixed
     target: str | None = None
+
+    @field_validator("span", mode="before")
+    def parse_span(cls, value):
+        return safe_enum_from_name(NycthemeralSpanMethod, value)
 
     @field_validator("lighting", mode="before")
     def parse_lighting(cls, value):
-        return safe_enum_from_name(LightMethod, value)
+        return safe_enum_from_name(LightingMethod, value)
 
 
-class SkyConfigDict(TypedDict):
+SkyConfig = NycthemeralCycleConfig
+
+
+class NycthemeralCycleConfigDict(TypedDict):
     """Cf. related BaseModel."""
+    span: str | NycthemeralSpanMethod
+    lighting: str | LightingMethod
+    target: str | None
     day:  time | None | str
     night:  time | None | str
-    lighting: str
-    target: str | None
+
+
+SkyConfigDict = NycthemeralCycleConfigDict
 
 
 class ClimateParameter(StrEnum):
@@ -483,7 +511,7 @@ class EnvironmentConfig(BaseModel):
     Used as part of a payload sent between Gaia and Ouranos.
     """
     chaos: ChaosConfig = Field(default_factory=ChaosConfig)
-    sky: SkyConfig = Field(default_factory=SkyConfig)
+    nycthemeral_cycle: NycthemeralCycleConfig = Field(default_factory=NycthemeralCycleConfig)
     climate: list[ClimateConfig] = Field(default_factory=list)
 
     @field_validator("climate", mode="before")
@@ -496,7 +524,7 @@ class EnvironmentConfig(BaseModel):
 class EnvironmentConfigDict(TypedDict):
     """Cf. related BaseModel."""
     chaos: ChaosConfigDict
-    sky: SkyConfigDict
+    nycthemeral_cycle: NycthemeralCycleConfigDict
     climate: list[ClimateConfigDict]
 
 
