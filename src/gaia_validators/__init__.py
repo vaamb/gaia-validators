@@ -845,7 +845,7 @@ class ActuatorsDataDict(TypedDict):
     heater: ActuatorStateDict
     humidifier: ActuatorStateDict
     dehumidifier: ActuatorStateDict
-    fan: ActuatorsDataDict
+    fan: ActuatorStateDict
 
 
 # Places
