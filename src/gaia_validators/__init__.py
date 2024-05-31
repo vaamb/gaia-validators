@@ -418,10 +418,14 @@ class NycthemeralCycleConfig(NycthemeralSpanConfig):
 
     @field_validator("span", mode="before")
     def parse_span(cls, value):
+        if isinstance(value, int):
+            return NycthemeralSpanMethod(value)
         return safe_enum_from_name(NycthemeralSpanMethod, value)
 
     @field_validator("lighting", mode="before")
     def parse_lighting(cls, value):
+        if isinstance(value, int):
+            return LightingMethod(value)
         return safe_enum_from_name(LightingMethod, value)
 
 
