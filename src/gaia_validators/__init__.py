@@ -825,10 +825,29 @@ class ActuatorStateDict(TypedDict):
     mode: ActuatorMode
 
 
+class ActuatorStateRecord(NamedTuple):
+    """Actuator state at a given time.
+
+    :arg type: the hardware type that changed state.
+    :arg active: the new actuator activity status.
+    :arg mode: the new actuator mode.
+    :arg status: the new actuator status.
+    :arg timestamp: the timestamp when the status changed.
+
+    Used by Gaia events and as part of a payload sent between Gaia and Ouranos.
+    """
+    type: HardwareType
+    active: bool
+    mode: ActuatorMode
+    status: bool
+    level: float | None
+    timestamp: datetime | None
+
+
 class ActuatorsData(BaseModel):
     """A compilation of all the types of actuator and their state
 
-    Used by Gaia and as part of a payload sent between Gaia and Ouranos.
+    Used by Gaia and Ouranos.
     """
     light: ActuatorState = ActuatorState()
     cooler: ActuatorState = ActuatorState()
@@ -1005,13 +1024,13 @@ class LightDataPayloadDict(EcosystemPayloadDict):
 
 
 class ActuatorsDataPayload(EcosystemPayload):
-    """Payload to send 'ActuatorsData' from Gaia to Ouranos."""
-    data: ActuatorsData
+    """Payload to send 'ActuatorsState' from Gaia to Ouranos."""
+    data: list[ActuatorStateRecord] = Field(default_factory=list)
 
 
 class ActuatorsDataPayloadDict(EcosystemPayloadDict):
     """Cf. related BaseModel."""
-    data: ActuatorsDataDict
+    data: list[ActuatorStateRecord]
 
 
 class HealthDataPayload(EcosystemPayload):
@@ -1112,6 +1131,21 @@ class CrudPayloadDict(TypedDict):
 
 
 # Buffered data payloads
+class BufferedDataPayload(BaseModel):
+    """Payload to send a list of buffered data from Gaia to Ouranos.
+
+    :arg data: a list of data (DB rows) that could not be sent before.
+    :arg uuid: the id of the transaction.
+    """
+    data: list[NamedTuple]
+    uuid: UUID
+
+
+class BufferedDataPayloadDict(TypedDict):
+    """Cf. related BaseModel."""
+    uuid: UUID
+
+
 class BufferedSensorRecord(NamedTuple):
     """A version of SensorRecord saved by gaia when it could not be sent.
     
@@ -1131,7 +1165,7 @@ class BufferedSensorRecord(NamedTuple):
     timestamp: datetime
 
 
-class BufferedSensorsDataPayload(BaseModel):
+class BufferedSensorsDataPayload(BufferedDataPayload):
     """Payload to send a list of 'BufferedSensorRecord' from Gaia to Ouranos.
 
     :arg data: a list of 'BufferedSensorRecord' that could not be sent before.
@@ -1141,10 +1175,45 @@ class BufferedSensorsDataPayload(BaseModel):
     uuid: UUID
 
 
-class BufferedSensorsDataPayloadDict(TypedDict):
+class BufferedSensorsDataPayloadDict(BufferedDataPayloadDict):
     """Cf. related BaseModel."""
     data: list[BufferedSensorRecord]
+
+
+class BufferedActuatorRecord(NamedTuple):
+    """A version of ActuatorRecord saved by gaia when it could not be sent.
+
+    :arg ecosystem_uid: the uid of the ecosystem in which the measurement was
+                        taken.
+    :arg sensor_uid: the uid of the sensor that took the measurement.
+    :arg measure: the name of the measure taken.
+    :arg value: the value of the sensor's measurement.
+    :arg timestamp: the timestamp of when the measurement was done.
+
+    Used by Gaia events and as part of a payload sent between Gaia and Ouranos.
+    """
+    ecosystem_uid: str
+    type: HardwareType
+    active: bool
+    mode: ActuatorMode
+    status: bool
+    level: float | None
+    timestamp: datetime | None
+
+
+class BufferedActuatorsStatePayload(BufferedDataPayload):
+    """Payload to send a list of 'BufferedSensorRecord' from Gaia to Ouranos.
+
+    :arg data: a list of 'BufferedSensorRecord' that could not be sent before.
+    :arg uuid: the id of the transaction.
+    """
+    data: list[BufferedActuatorRecord]
     uuid: UUID
+
+
+class BufferedActuatorsStatePayloadDict(BufferedDataPayloadDict):
+    """Cf. related BaseModel."""
+    data: list[BufferedActuatorRecord]
 
 
 # Request (CRUD & buffered data saving) results
