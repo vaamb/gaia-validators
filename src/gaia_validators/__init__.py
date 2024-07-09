@@ -844,29 +844,6 @@ class ActuatorStateRecord(NamedTuple):
     timestamp: datetime | None
 
 
-class ActuatorsData(BaseModel):
-    """A compilation of all the types of actuator and their state
-
-    Used by Gaia and Ouranos.
-    """
-    light: ActuatorState = ActuatorState()
-    cooler: ActuatorState = ActuatorState()
-    heater: ActuatorState = ActuatorState()
-    humidifier: ActuatorState = ActuatorState()
-    dehumidifier: ActuatorState = ActuatorState()
-    fan: ActuatorState = ActuatorState()
-
-
-class ActuatorsDataDict(TypedDict):
-    """Cf. related BaseModel."""
-    light: ActuatorStateDict
-    cooler: ActuatorStateDict
-    heater: ActuatorStateDict
-    humidifier: ActuatorStateDict
-    dehumidifier: ActuatorStateDict
-    fan: ActuatorStateDict
-
-
 # Places
 class Coordinates(NamedTuple):
     latitude: float
