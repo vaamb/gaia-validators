@@ -841,7 +841,7 @@ class ActuatorStateRecord(NamedTuple):
     mode: ActuatorMode
     status: bool
     level: float | None
-    timestamp: datetime | None
+    timestamp: datetime
 
 
 # Places
