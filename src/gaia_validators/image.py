@@ -33,6 +33,8 @@ def _deserializer(payload: bytes) -> Any:
 @dataclass
 class Image:
     _separator = b"\-"
+    _serializer = _serializer
+    _deserializer = _deserializer
 
     array: np.array
     shape: tuple[int, int]
@@ -56,21 +58,13 @@ class Image:
         )
 
     @classmethod
-    def decode(
-            cls,
-            encoded_image: bytes,
-            separator: bytes | None = None,
-            deserializer: Callable = _deserializer,
-    ) -> Self:
+    def decode(cls, encoded_image: bytes) -> Self:
         """Decode the bytes payload containing an Image and return it
 
         :param encoded_image: An Image encoded into bytes
-        :param separator: A bytes used as field separator in the bytes payload
-        :param deserializer: A function that takes bytes and returns objects
         :return: The Image with the info from the payload
         """
-        separator = separator or cls._separator
-        elems = encoded_image.split(separator, maxsplit=4)
+        elems = encoded_image.split(cls._separator, maxsplit=4)
         depth = elems[2].decode("utf8")
         array = np.frombuffer(elems[0], dtype=depth)
         shape_info = elems[1].decode("utf8").split(",")
@@ -80,27 +74,20 @@ class Image:
             array=array,
             shape=shape,
             depth=depth,
-            metadata=deserializer(elems[3])
+            metadata=cls._deserializer(elems[3])
         )
 
-    def encode(
-            self,
-            separator: bytes | None = None,
-            serializer: Callable = _serializer,
-    ) -> bytes:
+    def encode(self) -> bytes:
         """Encode the Image as a bytes payload to send it via a dispatcher
 
-        :param separator: A bytes used as field separator in the bytes payload
-        :param serializer: A function that takes objects and returns bytes
         :return: The Image and its metadata encoded as a bytes payload
         """
-        separator = separator or self._separator
         return (
             # b"image" + separator +
-            self.array.tobytes() + separator +
-            f"{self.shape[0]},{self.shape[1]}".encode("utf8") + separator +
-            self.depth.encode("utf8") + separator +
-            serializer(self.metadata)
+            self.array.tobytes() + self._separator +
+            f"{self.shape[0]},{self.shape[1]}".encode("utf8") + self._separator +
+            self.depth.encode("utf8") + self._separator +
+            self._serializer(self.metadata)
         )
 
     @classmethod
