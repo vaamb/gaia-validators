@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date, datetime, time, timezone
 import json
-from pathlib import Path
-from typing import Any, Callable, Self
+from typing import Any, Self
 import uuid
 
 import numpy as np
-from PIL import Image as PILImage
+from PIL import Image as PIL_image
 
 
 def _default(obj: Any) -> str:
@@ -22,32 +21,42 @@ def _default(obj: Any) -> str:
         return str(obj)
 
 
-def _serializer(obj: Any) -> bytes:
-    return json.dumps(obj, default=_default).encode("utf8")
+class _Serializer:
+    @staticmethod
+    def dumps(obj: Any) -> bytes:
+        return json.dumps(obj, default=_default).encode("utf8")
+
+    @staticmethod
+    def loads(obj: Any) -> Any:
+        return json.loads(obj.decode("utf8"))
 
 
-def _deserializer(payload: bytes) -> Any:
-    return json.loads(payload.decode("utf8"))
+class SerializableImage:
+    _separator = b"\x1f\x1f"
+    _serializer = _Serializer
 
+    def __init__(
+            self,
+            array: np.ndarray,
+            shape: tuple[int, ...],
+            depth: str,
+            metadata: dict | None = None,
+    ):
+        self.array: np.ndarray = array
+        self.shape: tuple[int, ...] = shape
+        self.depth: str = depth
+        self.metadata: dict = metadata or {}
 
-@dataclass
-class Image:
-    _separator = b"\-"
-    _serializer = _serializer
-    _deserializer = _deserializer
-
-    array: np.array
-    shape: tuple[int, int]
-    depth: str
-    metadata: dict = field(default_factory=dict)
+    def __repr__(self) -> str:
+        return f"<SerializableImage(shape={self.shape}, depth={self.depth})>"
 
     @classmethod
-    def from_array(cls, array: np.array, metadata: dict | None = None) -> Self:
+    def from_array(cls, array: np.ndarray, metadata: dict | None = None) -> Self:
         """Create an Image from a numpy array
 
         :param array: An image as numpy array
         :param metadata: Information about the image
-        :return: The Image
+        :return: A SerializableImage
         """
         metadata = metadata or {}
         return cls(
@@ -58,65 +67,86 @@ class Image:
         )
 
     @classmethod
+    def from_image(cls, image: PIL_image.Image, metadata: dict | None = None) -> Self:
+        """Create an Image from a numpy array
+
+        :param image: An image as a PIL Image
+        :param metadata: Information about the image
+        :return: A SerializableImage
+        """
+        array = np.array(image)
+        return cls.from_array(array, metadata)
+
+    @classmethod
     def decode(cls, encoded_image: bytes) -> Self:
         """Decode the bytes payload containing an Image and return it
 
         :param encoded_image: An Image encoded into bytes
-        :return: The Image with the info from the payload
+        :return: A SerializableImage with the info from the payload
         """
         elems = encoded_image.split(cls._separator, maxsplit=4)
         depth = elems[2].decode("utf8")
         array = np.frombuffer(elems[0], dtype=depth)
         shape_info = elems[1].decode("utf8").split(",")
-        shape = (int(shape_info[0]), int(shape_info[2]))
-        array.reshape(shape)
+        shape = tuple([int(dim) for dim in shape_info])
+        array = array.reshape(shape)
         return cls(
             array=array,
             shape=shape,
             depth=depth,
-            metadata=cls._deserializer(elems[3])
+            metadata=cls._serializer.loads(elems[3])
         )
 
     def encode(self) -> bytes:
         """Encode the Image as a bytes payload to send it via a dispatcher
 
-        :return: The Image and its metadata encoded as a bytes payload
+        :return: A SerializableImage and its metadata encoded as a bytes payload
         """
         return (
             # b"image" + separator +
             self.array.tobytes() + self._separator +
-            f"{self.shape[0]},{self.shape[1]}".encode("utf8") + self._separator +
+            ",".join([str(dim) for dim in self.shape]).encode("utf8") + self._separator +
             self.depth.encode("utf8") + self._separator +
-            self._serializer(self.metadata)
+            self._serializer.dumps(self.metadata)
         )
+
+
+class SerializableImagePayload:
+    _separator = b"\x1e\x1e"
+
+    uid: str
+    data: list[SerializableImage]
+
+    def __init__(
+            self,
+            uid: str,
+            data: list[SerializableImage],
+    ):
+        self.uid: str = uid
+        self.data: list[SerializableImage] = data
+
+    def __repr__(self) -> str:
+        return f"<SerializableImagePayload({self.uid}, elements={len(self.data)})>"
 
     @classmethod
-    def open(cls, path: Path, metadata: dict | None = None) -> Self:
-        """Open and return a file image
+    def decode(cls, encoded_payload: bytes) -> Self:
+        """Decode the bytes payload containing an Image payload and return it
 
-        :param path: The Path from where the Image should be opened
-        :param metadata: The image metadata
-        :return: The Image
+        :param encoded_payload: An Image encoded into bytes
+        :return: A SerializableImagePayload with the data from the payload
         """
-        metadata = metadata or {}
-        pil_image = PILImage.open(path)
-        array = np.asarray(pil_image)
+        elems = encoded_payload.split(cls._separator)
         return cls(
-            array=array,
-            shape=array.shape,
-            depth=str(array.dtype),
-            metadata=metadata
+            uid=elems[0].decode("utf8"),
+            data=[SerializableImage.decode(data) for data in elems[1:]]
         )
 
-    def save(self, name: Path, extension: str = ".jpeg") -> Path:
-        """Save the Image as a file
+    def encode(self) -> bytes:
+        """Encode the Images payload as a bytes payload to send it via a dispatcher
 
-        :param name: The Path where the Image should be saved
-        :param extension: The image file extension to use
-        :return: The Path where the Image has been saved
+        :return: A SerializableImage and its metadata encoded as a bytes payload
         """
-        pil_image = PILImage.fromarray(self.array)
-        if not str(name).endswith(extension):
-            name = name/extension
-        pil_image.save(name)
-        return name
+        return (
+            self.uid.encode("utf8") + self._separator +
+            self._separator.join([image.encode() for image in self.data])
+        )
