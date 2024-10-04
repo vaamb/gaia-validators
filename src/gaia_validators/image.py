@@ -37,18 +37,27 @@ class SerializableImage:
 
     def __init__(
             self,
-            array: np.ndarray,
+            byte_array: bytes,
             shape: tuple[int, ...],
             depth: str,
             metadata: dict | None = None,
     ):
-        self.array: np.ndarray = array
+        self.byte_array: bytes = byte_array
+        self._array: np.ndarray | None = None
         self.shape: tuple[int, ...] = shape
         self.depth: str = depth
         self.metadata: dict = metadata or {}
 
     def __repr__(self) -> str:
         return f"<SerializableImage(shape={self.shape}, depth={self.depth})>"
+
+    @property
+    def array(self) -> np.ndarray:
+        if self._array is None:
+            array = np.frombuffer(self.byte_array, dtype=self.depth)
+            array = array.reshape(self.shape)
+            self._array = array
+        return self._array
 
     @classmethod
     def from_array(cls, array: np.ndarray, metadata: dict | None = None) -> Self:
@@ -59,12 +68,15 @@ class SerializableImage:
         :return: A SerializableImage
         """
         metadata = metadata or {}
-        return cls(
-            array=array,
+        byte_array = array.tobytes()
+        obj = cls(
+            byte_array=byte_array,
             shape=array.shape,
             depth=str(array.dtype),
             metadata=metadata,
         )
+        obj._array = array
+        return obj
 
     @classmethod
     def from_image(cls, image: PIL_image.Image, metadata: dict | None = None) -> Self:
@@ -85,13 +97,12 @@ class SerializableImage:
         :return: A SerializableImage with the info from the payload
         """
         elems = encoded_image.split(cls._separator, maxsplit=4)
-        depth = elems[2].decode("utf8")
-        array = np.frombuffer(elems[0], dtype=depth)
+        byte_array = elems[0]
         shape_info = elems[1].decode("utf8").split(",")
         shape = tuple([int(dim) for dim in shape_info])
-        array = array.reshape(shape)
+        depth = elems[2].decode("utf8")
         return cls(
-            array=array,
+            byte_array=byte_array,
             shape=shape,
             depth=depth,
             metadata=cls._serializer.loads(elems[3])
@@ -104,7 +115,7 @@ class SerializableImage:
         """
         return (
             # b"image" + separator +
-            self.array.tobytes() + self._separator +
+            self.byte_array + self._separator +
             ",".join([str(dim) for dim in self.shape]).encode("utf8") + self._separator +
             self.depth.encode("utf8") + self._separator +
             self._serializer.dumps(self.metadata)
