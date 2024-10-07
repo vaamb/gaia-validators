@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime, time, timezone
 from enum import auto, Enum, IntEnum, IntFlag
-from typing import Any, NamedTuple, Self, Type, TypedDict, TypeVar
+from typing import Any, NamedTuple, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel as _BaseModel, ConfigDict, Field, field_validator
 from pydantic.dataclasses import dataclass
+from typing_extensions import Self
 
 try:
     from enum import StrEnum
