@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, time, timezone
 from enum import auto, Enum, IntEnum, IntFlag
-from typing import Any, Literal, NamedTuple, Self, Type, TypedDict, TypeVar
+from typing import Any, NamedTuple, Self, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel as _BaseModel, ConfigDict, Field, field_validator
@@ -189,9 +189,6 @@ class ManagementFlags(IntFlag):
     pictures_enabled = camera | pictures
 
 
-ManagementNames = Literal[*_get_enum_names(ManagementFlags)]  # noqa: works when imported
-
-
 class ManagementConfig(BaseModel):
     """Long form of a Gaia ecosystem subroutine management info.
 
@@ -255,9 +252,6 @@ class ActuatorMode(StrEnum):
     manual = "manual"
 
 
-ActuatorModeNames = Literal[*_get_enum_names(ActuatorMode)]  # noqa: works when imported
-
-
 class ActuatorStatus(StrEnum):
     """Actuator status.
 
@@ -265,9 +259,6 @@ class ActuatorStatus(StrEnum):
     """
     on = "on"
     off = "off"
-
-
-ActuatorStatusNames = Literal[*_get_enum_names(ActuatorStatus)]  # noqa: works when imported
 
 
 class ActuatorModePayload(StrEnum):
@@ -317,9 +308,6 @@ class LightingMethod(IntFlag):
 
 
 LightMethod = LightingMethod
-
-
-LightMethodNames = Literal[*_get_enum_names(LightMethod)]  # noqa: works when imported
 
 
 # Climate
@@ -455,9 +443,6 @@ class ClimateParameter(StrEnum):
     wind = "wind"
 
 
-ClimateParameterNames = Literal[*_get_enum_names(ClimateParameter)]  # noqa: works when imported
-
-
 class AnonymousClimateConfig(BaseModel):
     """Configuration for controlling one climatic parameter.
 
@@ -540,9 +525,6 @@ class HardwareLevel(StrEnum):
     plants = "plants"
 
 
-HardwareLevelNames = Literal[*_get_enum_names(HardwareLevel)]  # noqa: works when imported
-
-
 class HardwareType(IntFlag):
     """Types of hardware possible"""
     sensor = auto()
@@ -557,9 +539,6 @@ class HardwareType(IntFlag):
     temperature_actuator = heater | cooler
     humidity_actuator = humidifier | dehumidifier
     climate_actuator = temperature_actuator | humidity_actuator
-
-
-HardwareTypeNames = Literal[*_get_enum_names(HardwareType)]  # noqa: works when imported
 
 
 class Measure(BaseModel):
