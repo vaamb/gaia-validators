@@ -716,10 +716,28 @@ class HealthRecord(NamedTuple):
     Used by Gaia health subroutine and as part of a payload sent between Gaia
     and Ouranos.
     """
-    green: float
-    necrosis: float
-    index: float
-    timestamp: datetime
+    camera_uid: str
+    measure: str
+    value: float
+    timestamp: datetime | None = None
+
+
+class HealthData(BaseModel):
+    """A collection of all the health measurements for one ecosystem at one time
+    point.
+
+    For the detail of the various attributes, see the related models.
+
+    Used by Gaia sensors subroutine and as part of a payload sent between Gaia
+    and Ouranos."""
+    timestamp: datetime = Field(default_factory=_now)
+    records: list[HealthRecord] = Field(default_factory=list)
+
+
+class HealthDataDict(TypedDict):
+    """Cf. related BaseModel."""
+    timestamp: datetime | str
+    records: list[HealthRecord]
 
 
 class LightingHours(BaseModel):
@@ -992,12 +1010,12 @@ class ActuatorsDataPayloadDict(EcosystemPayloadDict):
 
 class HealthDataPayload(EcosystemPayload):
     """Payload to send 'HealthRecord' from Gaia to Ouranos."""
-    data: HealthRecord
+    data: HealthData
 
 
 class HealthDataPayloadDict(EcosystemPayloadDict):
     """Cf. related BaseModel."""
-    data: HealthRecord
+    data: HealthDataDict
 
 
 class ChaosParametersPayload(EcosystemPayload):
