@@ -132,7 +132,7 @@ class SerializableImage:
     # ---------------------------------------------------------------------------
     #   Utility methods
     # ---------------------------------------------------------------------------
-    def resize(self, new_shape: tuple[int, ...], inplace: bool = True) -> Self:
+    def resize(self, new_shape: tuple[int, ...], inplace: bool = False) -> Self:
         array = cv2.resize(self.array, new_shape)
         if inplace:
             self.array = array
@@ -140,7 +140,7 @@ class SerializableImage:
         else:
             return self.__class__(array, self.metadata)
 
-    def to_grayscale(self, inplace: bool = True) -> Self:
+    def to_grayscale(self, inplace: bool = False) -> Self:
         array = cv2.cvtColor(self.array, cv2.COLOR_BGR2GRAY)
         if inplace:
             self.array = array
