@@ -1,34 +1,21 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import date, datetime, time, timezone
-import json
+from pathlib import Path
 from typing import Any, Self
-import uuid
 
+import cv2
 import numpy as np
-from PIL import Image as PIL_image
-
-
-def _default(obj: Any) -> str:
-    if isinstance(obj, datetime):
-        return obj.astimezone(tz=timezone.utc).isoformat(timespec="seconds")
-    if isinstance(obj, date):
-        return obj.isoformat()
-    if isinstance(obj, time):
-        return str(obj)
-    if isinstance(obj, uuid.UUID):
-        return str(obj)
+import orjson
 
 
 class _Serializer:
     @staticmethod
     def dumps(obj: Any) -> bytes:
-        return json.dumps(obj, default=_default).encode("utf8")
+        return orjson.dumps(obj, option=orjson.OPT_SERIALIZE_NUMPY)
 
     @staticmethod
     def loads(obj: Any) -> Any:
-        return json.loads(obj.decode("utf8"))
+        return orjson.loads(obj)
 
 
 class SerializableImage:
@@ -37,27 +24,27 @@ class SerializableImage:
 
     def __init__(
             self,
-            byte_array: bytes,
-            shape: tuple[int, ...],
-            depth: str,
+            array: np.ndarray,
             metadata: dict | None = None,
     ):
-        self.byte_array: bytes = byte_array
-        self._array: np.ndarray | None = None
-        self.shape: tuple[int, ...] = shape
-        self.depth: str = depth
+        self.array: np.ndarray = array
+        self._mode: str = "BRG"
         self.metadata: dict = metadata or {}
 
     def __repr__(self) -> str:
         return f"<SerializableImage(shape={self.shape}, depth={self.depth})>"
 
     @property
-    def array(self) -> np.ndarray:
-        if self._array is None:
-            array = np.frombuffer(self.byte_array, dtype=self.depth)
-            array = array.reshape(self.shape)
-            self._array = array
-        return self._array
+    def shape(self) -> tuple[int, ...]:
+        return self.array.shape
+
+    @property
+    def depth(self) -> str:
+        return str(self.array.dtype)
+
+    @property
+    def size(self) -> int:
+        return self.array.size
 
     @classmethod
     def from_array(cls, array: np.ndarray, metadata: dict | None = None) -> Self:
@@ -67,30 +54,28 @@ class SerializableImage:
         :param metadata: Information about the image
         :return: A SerializableImage
         """
-        metadata = metadata or {}
-        byte_array = array.tobytes()
-        obj = cls(
-            byte_array=byte_array,
-            shape=array.shape,
-            depth=str(array.dtype),
-            metadata=metadata,
+        return cls(
+            array=array,
+            metadata=metadata or {},
         )
-        obj._array = array
-        return obj
 
     @classmethod
-    def from_image(cls, image: PIL_image.Image, metadata: dict | None = None) -> Self:
-        """Create an Image from a numpy array
+    def read(cls, path: Path | str, metadata: dict | None = None) -> Self:
+        path: Path = Path(path)
+        if not path.exists():
+            raise FileNotFoundError(path)
+        array = cv2.imread(str(path))
+        return cls(
+            array=array,
+            metadata=metadata or {},
+        )
 
-        :param image: An image as a PIL Image
-        :param metadata: Information about the image
-        :return: A SerializableImage
-        """
-        array = np.array(image)
-        return cls.from_array(array, metadata)
+    def write(self, path: Path | str) -> None:
+        path: Path = Path(path)
+        cv2.imwrite(str(path), self.array)
 
     @classmethod
-    def decode(cls, encoded_image: bytes) -> Self:
+    def deserialize(cls, encoded_image: bytes) -> Self:
         """Decode the bytes payload containing an Image and return it
 
         :param encoded_image: An Image encoded into bytes
@@ -101,21 +86,21 @@ class SerializableImage:
         shape_info = elems[1].decode("utf8").split(",")
         shape = tuple([int(dim) for dim in shape_info])
         depth = elems[2].decode("utf8")
+        array = np.frombuffer(byte_array, dtype=depth)
+        array = array.reshape(shape)
         return cls(
-            byte_array=byte_array,
-            shape=shape,
-            depth=depth,
+            array=array,
             metadata=cls._serializer.loads(elems[3])
         )
 
-    def encode(self) -> bytes:
+    def serialize(self) -> bytes:
         """Encode the Image as a bytes payload to send it via a dispatcher
 
         :return: A SerializableImage and its metadata encoded as a bytes payload
         """
         return (
-            # b"image" + separator +
-            self.byte_array + self._separator +
+            # b"image" + self._separator +
+            self.array.tobytes() + self._separator +
             ",".join([str(dim) for dim in self.shape]).encode("utf8") + self._separator +
             self.depth.encode("utf8") + self._separator +
             self._serializer.dumps(self.metadata)
@@ -140,7 +125,7 @@ class SerializableImagePayload:
         return f"<SerializableImagePayload({self.uid}, elements={len(self.data)})>"
 
     @classmethod
-    def decode(cls, encoded_payload: bytes) -> Self:
+    def deserialize(cls, encoded_payload: bytes) -> Self:
         """Decode the bytes payload containing an Image payload and return it
 
         :param encoded_payload: An Image encoded into bytes
@@ -149,15 +134,15 @@ class SerializableImagePayload:
         elems = encoded_payload.split(cls._separator)
         return cls(
             uid=elems[0].decode("utf8"),
-            data=[SerializableImage.decode(data) for data in elems[1:]]
+            data=[SerializableImage.deserialize(data) for data in elems[1:]]
         )
 
-    def encode(self) -> bytes:
+    def serialize(self) -> bytes:
         """Encode the Images payload as a bytes payload to send it via a dispatcher
 
         :return: A SerializableImage and its metadata encoded as a bytes payload
         """
         return (
             self.uid.encode("utf8") + self._separator +
-            self._separator.join([image.encode() for image in self.data])
+            self._separator.join([image.serialize() for image in self.data])
         )
