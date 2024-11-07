@@ -109,6 +109,10 @@ class SerializableImage:
             self._serializer.dumps(self.metadata)
         )
 
+    encode = serialize
+    decode = deserialize
+
+
     @classmethod
     def load_array(cls, path: Path | str, metadata: dict | None = None) -> Self:
         path: Path = Path(path)
@@ -192,3 +196,6 @@ class SerializableImagePayload:
             self.uid.encode("utf8") + self._separator +
             self._separator.join([image.serialize() for image in self.data])
         )
+
+    encode = serialize
+    decode = deserialize
