@@ -46,6 +46,9 @@ class SerializableImage:
     def size(self) -> int:
         return self.array.size
 
+    # ---------------------------------------------------------------------------
+    #   Methods to load from and dump to multiple sources
+    # ---------------------------------------------------------------------------
     @classmethod
     def from_array(cls, array: np.ndarray, metadata: dict | None = None) -> Self:
         """Create an Image from a numpy array
@@ -104,6 +107,49 @@ class SerializableImage:
             ",".join([str(dim) for dim in self.shape]).encode("utf8") + self._separator +
             self.depth.encode("utf8") + self._separator +
             self._serializer.dumps(self.metadata)
+        )
+
+    @classmethod
+    def load_array(cls, path: Path | str, metadata: dict | None = None) -> Self:
+        path: Path = Path(path)
+        if not path.exists():
+            raise FileNotFoundError(path)
+        with path.open("rb") as handler:
+            array: np.ndarray = np.load(handler)
+        return cls(
+            array=array,
+            metadata=metadata or {},
+        )
+
+    def dump_array(self, path: Path | str) -> None:
+        with path.open("wb") as handler:
+            np.save(handler, self.array)
+
+    # ---------------------------------------------------------------------------
+    #   Utility methods
+    # ---------------------------------------------------------------------------
+    def resize(self, new_shape: tuple[int, ...], inplace: bool = True) -> Self:
+        array = cv2.resize(self.array, new_shape)
+        if inplace:
+            self.array = array
+            return self
+        else:
+            return self.__class__(array, self.metadata)
+
+    def to_grayscale(self, inplace: bool = True) -> Self:
+        array = cv2.cvtColor(self.array, cv2.COLOR_BGR2GRAY)
+        if inplace:
+            self.array = array
+            return self
+        else:
+            return self.__class__(array, self.metadata)
+
+    def compute_mse(self, other: SerializableImage) -> float:
+        if not self.shape == other.shape:
+            raise ValueError("The two arrays must have the same shape")
+        return np.mean(
+            (self.array.astype(np.float64) - self.array.astype(np.float64)) ** 2,
+            dtype=np.float64,
         )
 
 
