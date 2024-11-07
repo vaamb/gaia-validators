@@ -156,6 +156,34 @@ class SerializableImage:
             dtype=np.float64,
         )
 
+    def apply_rgb_formula(self, formula: str, inplace: bool = False) -> Self:
+        if formula.count("/") > 1:
+            raise NotImplementedError(
+                "Only formulas with a single division are supported"
+            )
+        b, g, r = cv2.split(self.array)
+        locals_store = {
+            "b": b,
+            "g": g,
+            "r": r,
+        }
+        if "/" in formula:
+            numerator_str, denominator_str = formula.split("/")
+            exec(f"numerator = {numerator_str}", globals(), locals_store)
+            exec(f"denominator = {denominator_str}", globals(), locals_store)
+            numerator = locals_store["numerator"]
+            denominator = locals_store["denominator"]
+            denominator[denominator == 0] = 1
+            new_array = numerator / denominator
+        else:
+            exec(f"new_array = {formula}", globals(), locals_store)
+            new_array = locals_store["new_array"]
+        if inplace:
+            self.array = new_array
+            return self
+        else:
+            return self.__class__(new_array, self.metadata)
+
 
 class SerializableImagePayload:
     _separator = b"\x1e\x1e"
