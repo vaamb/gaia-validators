@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from enum import auto, Enum, IntEnum, IntFlag
 from typing import Any, NamedTuple, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
@@ -136,6 +136,33 @@ class Position(Enum):
     under = -1
     none = 0
     above = 1
+
+
+class Coordinates(NamedTuple):
+    latitude: float
+    longitude: float
+
+
+# SunTimes
+class SunTimes(BaseModel):
+    astronomical_dawn: time | None = None
+    nautical_dawn: time | None = None
+    civil_dawn: time | None = None
+    sunrise: time | None = None
+    solar_noon: time | None = None
+    sunset: time | None = None
+    civil_dusk: time | None = None
+    nautical_dusk: time | None = None
+    astronomical_dusk: time | None = None
+
+    @property
+    def twilight_duration(self) -> timedelta:
+        if self.sunrise is not None and self.civil_dawn is not None:
+            return (
+                    datetime.combine(date.today(), self.sunrise, tzinfo=timezone.utc)
+                    - datetime.combine(date.today(), self.civil_dawn, tzinfo=timezone.utc)
+            )
+        return timedelta(0)
 
 
 # Config
