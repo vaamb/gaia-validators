@@ -86,6 +86,9 @@ class Empty:
     pass
 
 
+empty = Empty()
+
+
 @dataclass(frozen=True)
 class IDs:
     """A Gaia ecosystem id
