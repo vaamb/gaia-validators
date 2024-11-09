@@ -146,28 +146,6 @@ class Coordinates(NamedTuple):
     longitude: float
 
 
-# SunTimes
-class SunTimes(BaseModel):
-    astronomical_dawn: time | None = None
-    nautical_dawn: time | None = None
-    civil_dawn: time | None = None
-    sunrise: time | None = None
-    solar_noon: time | None = None
-    sunset: time | None = None
-    civil_dusk: time | None = None
-    nautical_dusk: time | None = None
-    astronomical_dusk: time | None = None
-
-    @property
-    def twilight_duration(self) -> timedelta:
-        if self.sunrise is not None and self.civil_dawn is not None:
-            return (
-                    datetime.combine(date.today(), self.sunrise, tzinfo=timezone.utc)
-                    - datetime.combine(date.today(), self.civil_dawn, tzinfo=timezone.utc)
-            )
-        return timedelta(0)
-
-
 # Config
 class BaseInfoConfig(BaseModel):
     """Minimum info about a Gaia ecosystem needed for Ouranos to register it.
@@ -892,30 +870,39 @@ class PlaceDict(TypedDict):
 class SunTimes(LaxBaseModel):
     """Information about sunrise and sunset events for a given place.
 
-    Used by Gaia.
+    Used by Gaia and Ouranos.
     """
-    civil_dawn: time = Field(validation_alias="civil_twilight_begin")
-    sunrise: time
-    sunset: time
-    civil_dusk: time = Field(validation_alias="civil_twilight_end")
+    astronomical_dawn: time | None = None
+    nautical_dawn: time | None = None
+    civil_dawn: time | None = None
+    sunrise: time | None = None
+    solar_noon: time | None = None
+    sunset: time | None = None
+    civil_dusk: time | None = None
+    nautical_dusk: time | None = None
+    astronomical_dusk: time | None = None
 
-    @field_validator("civil_dawn", "sunrise", "sunset", "civil_dusk", mode="before")
-    def parse_time(cls, value):
-        if isinstance(value, str):
-            try:
-                dt = datetime.strptime(value, "%H:%M:%S")
-            except ValueError:
-                dt = datetime.strptime(value, "%I:%M:%S %p")
-            return dt.time()
-        return value
+    @property
+    def twilight_duration(self) -> timedelta:
+        if self.sunrise is not None and self.civil_dawn is not None:
+            return (
+                    datetime.combine(date.today(), self.sunrise, tzinfo=timezone.utc)
+                    - datetime.combine(date.today(), self.civil_dawn, tzinfo=timezone.utc)
+            )
+        return timedelta(0)
 
 
 class SunTimesDict(TypedDict):
     """Cf. related BaseModel."""
-    civil_dawn: time
-    sunrise: time
-    sunset: time
-    civil_dusk: time
+    astronomical_dawn: time | None
+    nautical_dawn: time | None
+    civil_dawn: time | None
+    sunrise: time | None
+    solar_noon: time | None
+    sunset: time | None
+    civil_dusk: time | None
+    nautical_dusk: time | None
+    astronomical_dusk: time | None
 
 
 # Broker payloads
