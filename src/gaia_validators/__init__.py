@@ -872,6 +872,7 @@ class SunTimes(LaxBaseModel):
 
     Used by Gaia and Ouranos.
     """
+    datestamp: date | None = None
     astronomical_dawn: time | None = None
     nautical_dawn: time | None = None
     civil_dawn: time | None = None
@@ -894,6 +895,7 @@ class SunTimes(LaxBaseModel):
 
 class SunTimesDict(TypedDict):
     """Cf. related BaseModel."""
+    datestamp: date | None
     astronomical_dawn: time | None
     nautical_dawn: time | None
     civil_dawn: time | None

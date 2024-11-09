@@ -85,7 +85,10 @@ def get_sun_times(
 
     return gv.SunTimes.model_validate(
         {
-            meaning: day_of_year_to_time(today.year, doy)
-            for meaning, doy in times.items()
+            "datestamp": day,
+            **{
+                meaning: day_of_year_to_time(today.year, doy)
+                for meaning, doy in times.items()
+            }
         }
     )
