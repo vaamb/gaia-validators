@@ -159,8 +159,13 @@ class SerializableImage:
     def apply_rgb_formula(self, formula: str, inplace: bool = False) -> Self:
         if formula.count("/") > 1:
             raise NotImplementedError(
-                "Only formulas with a single division are supported"
+                "Only formulas with at most one division are supported"
             )
+        if self.array.dtype != np.uint8:
+            raise NotImplementedError("Only uint8 arrays are currently supported")
+        if self.array.ndim != 3:
+            raise NotImplementedError("Only BGR arrays are supported")
+        formula = formula.lower()
         b, g, r = cv2.split(self.array)
         locals_store = {
             "b": b,
