@@ -711,23 +711,7 @@ class SensorsDataDict(TypedDict):
     alarms: list[SensorAlarm]
 
 
-class HealthRecord(NamedTuple):
-    """The ecosystem vegetation health measurement for one ecosystem at one time
-    point.
-
-    :arg green: the percentage of green pixels.
-    :arg necrosis: the percentage of pixels corresponding to plants showing
-                    signs of chlorosis and/or necrosis.
-    :arg index: the health index.
-    :arg timestamp: the timestamp of when the measurement was done.
-
-    Used by Gaia health subroutine and as part of a payload sent between Gaia
-    and Ouranos.
-    """
-    camera_uid: str
-    measure: str
-    value: float
-    timestamp: datetime | None = None
+HealthRecord = SensorRecord
 
 
 class HealthData(BaseModel):
