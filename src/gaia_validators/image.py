@@ -101,13 +101,15 @@ class SerializableImage:
 
         :return: A SerializableImage and its metadata encoded as a bytes payload
         """
-        return (
-            # b"image" + self._separator +
-            self.array.tobytes() + self._separator +
-            ",".join([str(dim) for dim in self.shape]).encode("utf8") + self._separator +
-            self.depth.encode("utf8") + self._separator +
-            self._serializer.dumps(self.metadata)
-        )
+        rv = bytearray()
+        rv += self.array.tobytes()
+        rv += self._separator
+        rv += ",".join([str(dim) for dim in self.shape]).encode("utf8")
+        rv += self._separator
+        rv += self.depth.encode("utf8")
+        rv += self._separator
+        rv += self._serializer.dumps(self.metadata)
+        return rv
 
     encode = serialize
     decode = deserialize
@@ -193,9 +195,6 @@ class SerializableImage:
 class SerializableImagePayload:
     _separator = b"\x1e\x1e"
 
-    uid: str
-    data: list[SerializableImage]
-
     def __init__(
             self,
             uid: str,
@@ -225,10 +224,11 @@ class SerializableImagePayload:
 
         :return: A SerializableImage and its metadata encoded as a bytes payload
         """
-        return (
-            self.uid.encode("utf8") + self._separator +
-            self._separator.join([image.serialize() for image in self.data])
-        )
+        rv = bytearray()
+        rv += self.uid.encode("utf8")
+        rv += self._separator
+        rv += self._separator.join([image.serialize() for image in self.data])
+        return rv
 
     encode = serialize
     decode = deserialize
