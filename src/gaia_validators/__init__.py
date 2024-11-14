@@ -1158,6 +1158,21 @@ class BufferedSensorsDataPayloadDict(BufferedDataPayloadDict):
     data: list[BufferedSensorRecord]
 
 
+class BufferedHealthRecordPayload(BufferedDataPayload):
+    """Payload to send a list of 'BufferedSensorRecord' from Gaia to Ouranos.
+
+    :arg data: a list of 'BufferedSensorRecord' that could not be sent before.
+    :arg uuid: the id of the transaction.
+    """
+    data: list[BufferedSensorRecord]
+    uuid: UUID
+
+
+class BufferedHealthRecordPayloadDict(BufferedDataPayloadDict):
+    """Cf. related BaseModel."""
+    data: list[BufferedSensorRecord]
+
+
 class BufferedActuatorRecord(NamedTuple):
     """A version of ActuatorRecord saved by gaia when it could not be sent.
 
