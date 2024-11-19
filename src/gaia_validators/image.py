@@ -84,16 +84,16 @@ class SerializableImage:
         :param encoded_image: An Image encoded into bytes
         :return: A SerializableImage with the info from the payload
         """
-        elems = encoded_image.split(cls._separator, maxsplit=4)
-        byte_array = elems[0]
-        shape_info = elems[1].decode("utf8").split(",")
+        elems = encoded_image.split(cls._separator, maxsplit=3)
+        shape_info = elems[0].decode("utf8").split(",")
         shape = tuple([int(dim) for dim in shape_info])
-        depth = elems[2].decode("utf8")
+        depth = elems[1].decode("utf8")
+        byte_array = elems[3]
         array = np.frombuffer(byte_array, dtype=depth)
         array = array.reshape(shape)
         return cls(
             array=array,
-            metadata=cls._serializer.loads(elems[3])
+            metadata=cls._serializer.loads(elems[2])
         )
 
     def serialize(self, compression_format: str | None = None) -> bytes:
@@ -107,13 +107,13 @@ class SerializableImage:
             array = self.array
 
         rv = bytearray()
-        rv += array.tobytes()
-        rv += self._separator
         rv += ",".join([str(dim) for dim in self.shape]).encode("utf8")
         rv += self._separator
         rv += self.depth.encode("utf8")
         rv += self._separator
         rv += self._serializer.dumps(self.metadata)
+        rv += self._separator
+        rv += array.tobytes()
         return rv
 
     encode = serialize
@@ -208,7 +208,7 @@ class SerializableImage:
 
 
 class SerializableImagePayload:
-    _separator = b"\x1e\x1e"
+    _separator = b"\x1e\x1f\x1e"
 
     def __init__(
             self,
