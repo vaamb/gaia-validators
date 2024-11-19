@@ -96,13 +96,18 @@ class SerializableImage:
             metadata=cls._serializer.loads(elems[3])
         )
 
-    def serialize(self) -> bytes:
+    def serialize(self, compression_format: str | None = None) -> bytes:
         """Encode the Image as a bytes payload to send it via a dispatcher
 
         :return: A SerializableImage and its metadata encoded as a bytes payload
         """
+        if compression_format is not None:
+            array = self.compress(compression_format)
+        else:
+            array = self.array
+
         rv = bytearray()
-        rv += self.array.tobytes()
+        rv += array.tobytes()
         rv += self._separator
         rv += ",".join([str(dim) for dim in self.shape]).encode("utf8")
         rv += self._separator
@@ -134,6 +139,16 @@ class SerializableImage:
     # ---------------------------------------------------------------------------
     #   Utility methods
     # ---------------------------------------------------------------------------
+    def compress(self, compression_format: str, inplace: bool = False) -> Self:
+        result, array = cv2.imencode(compression_format, self.array)
+        if not result:
+            raise RuntimeError("Compression failed")
+        if inplace:
+            self.array = array
+            return self
+        else:
+            return self.__class__(array, self.metadata)
+
     def resize(self, new_shape: tuple[int, ...], inplace: bool = False) -> Self:
         array = cv2.resize(self.array, new_shape)
         if inplace:
@@ -219,7 +234,7 @@ class SerializableImagePayload:
             data=[SerializableImage.deserialize(data) for data in elems[1:]]
         )
 
-    def serialize(self) -> bytes:
+    def serialize(self, compression_format: str | None = None) -> bytes:
         """Encode the Images payload as a bytes payload to send it via a dispatcher
 
         :return: A SerializableImage and its metadata encoded as a bytes payload
@@ -227,7 +242,12 @@ class SerializableImagePayload:
         rv = bytearray()
         rv += self.uid.encode("utf8")
         rv += self._separator
-        rv += self._separator.join([image.serialize() for image in self.data])
+        rv += self._separator.join(
+            [
+                image.serialize(compression_format)
+                for image in self.data
+            ]
+        )
         return rv
 
     encode = serialize
