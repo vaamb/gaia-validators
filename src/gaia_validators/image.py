@@ -176,8 +176,15 @@ class SerializableImage:
         else:
             return self.__class__(array, self.metadata, "raw")
 
-    def resize(self, new_shape: tuple[int, ...], inplace: bool = False) -> Self:
-        array = cv2.resize(self.array, new_shape)
+    def resize(
+            self,
+            new_shape: tuple[int, ...] | None = None,
+            ratio: float = 1.0,
+            inplace: bool = False,
+    ) -> Self:
+        if new_shape is None and ratio == 1:
+            return self
+        array = cv2.resize(self.array, new_shape, fx=ratio, fy=ratio)
         if inplace:
             self.array = array
             return self
