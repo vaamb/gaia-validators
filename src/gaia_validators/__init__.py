@@ -907,6 +907,28 @@ class EnginePayloadDict(TypedDict):
     address: str
 
 
+class EcosystemPingData(BaseModel):
+    uid: str
+    status: bool
+
+
+class EcosystemPingDataDict(TypedDict):
+    uid: str
+    status: bool
+
+
+class EnginePingPayload(BaseModel):
+    engine_uid: str
+    timestamp: datetime
+    ecosystems: list[EcosystemPingData]
+
+
+class EnginePingPayloadDict(TypedDict):
+    engine_uid: str
+    timestamp: datetime
+    ecosystems: list[EcosystemPingDataDict]
+
+
 class EcosystemPayload(BaseModel):
     """Base payload for sharing data between Gaia and Ouranos.
 
