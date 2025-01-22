@@ -991,6 +991,35 @@ class EnvironmentConfigPayloadDict(EcosystemPayloadDict):
     data: EnvironmentConfigDict
 
 
+class ChaosParametersPayload(EcosystemPayload):
+    """Payload to send 'ChaosParameters' from Gaia to Ouranos."""
+    data: ChaosParameters
+
+
+class ChaosParametersPayloadDict(EcosystemPayloadDict):
+    """Cf. related BaseModel."""
+    data: ChaosParametersDict
+
+
+class NycthemeralCycleConfigPayload(EcosystemPayload):
+    """Payload to send 'NycthemeralCycleConfig' from Gaia to Ouranos."""
+    data: NycthemeralCycleConfig
+
+
+class NycthemeralCycleConfigPayloadDict(EcosystemPayloadDict):
+    """Cf. related BaseModel."""
+    data: NycthemeralCycleConfigDict
+
+
+class ClimateConfigPayload(EcosystemPayload):
+    """Payload to send a list of 'ClimateConfig' from Gaia to Ouranos."""
+    data: list[ClimateConfig] = Field(default_factory=list)
+
+
+class ClimateConfigPayloadDict(EcosystemPayloadDict):
+    data: list[ClimateConfigDict]
+
+
 class HardwareConfigPayload(EcosystemPayload):
     """Payload to send a list of 'IdentifiedHardwareConfig' from Gaia to
     Ouranos."""
@@ -1043,21 +1072,11 @@ class HealthDataPayloadDict(EcosystemPayloadDict):
     data: HealthDataDict
 
 
-class ChaosParametersPayload(EcosystemPayload):
-    """Payload to send 'ChaosParameters' from Gaia to Ouranos."""
-    data: ChaosParameters
-
-
-class ChaosParametersPayloadDict(EcosystemPayloadDict):
-    """Cf. related BaseModel."""
-    data: ChaosParametersDict
-
-
 # Actuators payload
 class TurnActuatorPayload(BaseModel):
     """Payload from Ouranos to Gaia to request a change in mode for a type of
     actuator in the given ecosystem.
-    
+
     :arg ecosystem_uid: the uid of the ecosystem in which a change is requested.
     :arg actuator: the type of actuator to change.
     :arg mode: the desired mode. Rem: it is a 'ActuatorModePayload', not a
@@ -1148,8 +1167,8 @@ class BufferedDataPayloadDict(TypedDict):
 
 class BufferedSensorRecord(NamedTuple):
     """A version of SensorRecord saved by gaia when it could not be sent.
-    
-    :arg ecosystem_uid: the uid of the ecosystem in which the measurement was 
+
+    :arg ecosystem_uid: the uid of the ecosystem in which the measurement was
                         taken.
     :arg sensor_uid: the uid of the sensor that took the measurement.
     :arg measure: the name of the measure taken.
