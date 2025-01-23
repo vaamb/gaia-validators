@@ -791,6 +791,18 @@ class LightDataDict(LightingHoursDict):
     method: LightMethod
 
 
+class NycthemeralCycleInfo(LightingHours, NycthemeralCycleConfig):
+    """An augmented version of `NycthemeralCycleConfig` with the `LightingHours`
+    added.
+
+    Used by Gaia.
+    """
+
+
+class NycthemeralCycleInfoDict(NycthemeralCycleConfigDict, LightingHoursDict):
+    """Cf. related BaseModel."""
+
+
 # Actuators data
 class ActuatorState(BaseModel):
     """The state of one (type of) actuator.
@@ -1040,6 +1052,16 @@ class SensorsDataPayload(EcosystemPayload):
 class SensorsDataPayloadDict(EcosystemPayloadDict):
     """Cf. related BaseModel."""
     data: SensorsDataDict
+
+
+class NycthemeralCycleInfoPayload(EcosystemPayload):
+    """Payload to send 'LightData' from Gaia to Ouranos."""
+    data: NycthemeralCycleInfo
+
+
+class NycthemeralCycleInfoPayloadDict(EcosystemPayloadDict):
+    """Cf. related BaseModel."""
+    data: NycthemeralCycleInfoDict
 
 
 class LightDataPayload(EcosystemPayload):
