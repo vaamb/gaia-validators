@@ -5,8 +5,10 @@ from enum import auto, Enum, IntEnum, IntFlag
 from typing import Any, NamedTuple, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel as _BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    BaseModel as _BaseModel, ConfigDict, Field, field_validator, GetCoreSchemaHandler)
 from pydantic.dataclasses import dataclass
+from pydantic_core import core_schema
 from typing_extensions import Self
 
 try:
@@ -87,6 +89,36 @@ class Empty:
 
 
 empty = Empty()
+
+
+class MissingValue:
+    """A sentinel class to mark for missing value in update payloads
+
+    Used by Ouranos.
+    """
+    _instance = None
+
+    def __new__(cls):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __repr__(self):
+        return "<MISSING_VALUE>"
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+            cls,
+            source_type: Any,
+            _: GetCoreSchemaHandler,
+    ) -> core_schema.CoreSchema:
+        return core_schema.is_instance_schema(
+            cls=source_type,
+            serialization=core_schema.to_string_ser_schema(),
+        )
+
+
+missing = MissingValue()
 
 
 @dataclass(frozen=True)
