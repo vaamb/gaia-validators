@@ -561,7 +561,7 @@ class EnvironmentConfigDict(TypedDict):
 # Hardware
 class HardwareLevel(StrEnum):
     """Level at which the hardware operates."""
-
+    ecosystem = "ecosystem"
     environment = "environment"
     plants = "plants"
 
