@@ -315,6 +315,7 @@ class ActuatorModePayload(StrEnum):
     on = "on"
     off = "off"
     automatic = "automatic"
+    auto = automatic
 
 
 # Light
