@@ -1,6 +1,6 @@
 [project]
 name = "gaia_validators"
-version = "0.6.0"
+version = "0.7.0"
 description = "Validators and types for Gaia and Ouranos"
 authors = [
     {name = "Valentin Ambroise", email = "valentin.ambroise@outlook.com"}
