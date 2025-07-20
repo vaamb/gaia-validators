@@ -12,6 +12,13 @@ dependencies = [
     "pydantic~=2.4",
 ]
 
+[project.optional-dependencies]
+image = [
+    "numpy>=2.1",
+    "opencv-python>=4.10",
+    "orjson>=3.8",
+]
+
 [build-system]
 requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
