@@ -5,7 +5,7 @@ description = "Validators and types for Gaia and Ouranos"
 authors = [
     {name = "Valentin Ambroise", email = "valentin.ambroise@outlook.com"}
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 readme = "README.md"
 license = {file = "LICENSE"}
 dependencies = [

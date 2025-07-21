@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, time, timedelta, timezone
-from enum import auto, Enum, IntEnum, IntFlag
+from enum import auto, Enum, IntEnum, IntFlag, StrEnum
 from typing import Any, NamedTuple, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
@@ -10,13 +10,6 @@ from pydantic import (
 from pydantic.dataclasses import dataclass
 from pydantic_core import core_schema
 from typing_extensions import Self
-
-try:
-    from enum import StrEnum
-except ImportError:
-    class StrEnum(str, Enum):
-        def __repr__(self) -> str:
-            return str.__repr__(self.value)
 
 
 T = TypeVar("T", bound=Enum)
