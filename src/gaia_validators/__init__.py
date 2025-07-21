@@ -656,6 +656,43 @@ class HardwareConfigDict(AnonymousHardwareConfigDict):
     uid: str
 
 
+# Plants
+class AnonymousPlantConfig(BaseModel):
+    name: str
+    species: str | None = None
+    sowing_date: datetime | None = None
+    hardware: list[str] = Field(default_factory=list)
+
+    @field_validator("sowing_date", mode="before")
+    def parse_sowing_date(cls, value: str | datetime | None):
+        if isinstance(value, str):
+            return datetime.fromisoformat(value)
+        return value
+
+    @field_validator("hardware", mode="before")
+    def parse_hardware(cls, value: str | list[str] | None):
+        if value is None:
+            return []
+        if isinstance(value, str):
+            return [value]
+        return value
+
+
+class AnonymousPlantConfigDict(TypedDict):
+    name: str
+    species: str | None
+    sowing_date: datetime | None
+    hardware: list[str]
+
+
+class PlantConfig(AnonymousPlantConfig):
+    uid: str
+
+
+class PlantConfigDict(AnonymousPlantConfigDict):
+    uid: str
+
+
 # Data, records and warnings
 class MeasureAverage(NamedTuple):
     """Averaged sensor data for a measure
@@ -1049,14 +1086,23 @@ class ClimateConfigPayloadDict(EcosystemPayloadDict):
 
 
 class HardwareConfigPayload(EcosystemPayload):
-    """Payload to send a list of 'IdentifiedHardwareConfig' from Gaia to
-    Ouranos."""
-    data: list[HardwareConfig]
+    """Payload to send a list of 'HardwareConfig' from Gaia to Ouranos."""
+    data: list[HardwareConfig] = Field(default_factory=list)
 
 
 class HardwareConfigPayloadDict(EcosystemPayloadDict):
     """Cf. related BaseModel."""
     data: list[HardwareConfigDict]
+
+
+class PlantConfigPayload(EcosystemPayload):
+    """Payload to send a list of 'PlantConfig' from Gaia to Ouranos."""
+    data: list[PlantConfig] = Field(default_factory=list)
+
+
+class PlantConfigPayloadDict(EcosystemPayloadDict):
+    """Cf. related BaseModel."""
+    data: list[PlantConfigDict]
 
 
 # Data payloads
