@@ -27,8 +27,6 @@ def safe_enum_from_name(enum: Type[T], name: str | T) -> T:
     :return: An enum element
     """
     if isinstance(name, enum):
-        if not isinstance(name, enum):
-            raise ValueError(f"'{name}' does not belong to {enum}")
         return name
     try:
         return getattr(enum, name)
@@ -43,10 +41,6 @@ def safe_enum_from_value(enum: Type[T], value: str | T) -> T:
     :param value: The value of an enum element, or an element of the enum
     :return: An enum element
     """
-    if isinstance(value, enum):
-        if not isinstance(value, enum):
-            raise ValueError(f"'{value}' does not belong to {enum}")
-        return value
     try:
         return enum(value)
     except ValueError:
