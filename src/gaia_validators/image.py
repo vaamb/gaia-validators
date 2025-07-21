@@ -205,7 +205,7 @@ class SerializableImage:
         return np.mean(
             (self.array.astype(np.float64) - self.array.astype(np.float64)) ** 2,
             dtype=np.float64,
-        )
+        )  # type: ignore
 
     def apply_rgb_formula(self, formula: str, inplace: bool = False) -> Self:
         if formula.count("/") > 1:

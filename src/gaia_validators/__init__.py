@@ -29,7 +29,7 @@ def safe_enum_from_name(enum: Type[T], name: str | T) -> T:
     if isinstance(name, enum):
         return name
     try:
-        return getattr(enum, name)
+        return getattr(enum, name)  # type: ignore
     except AttributeError:
         raise ValueError(f"'{name}' is not a valid {enum} name")
 
@@ -160,11 +160,6 @@ class Position(Enum):
     above = 1
 
 
-class Coordinates(NamedTuple):
-    latitude: float
-    longitude: float
-
-
 # Config
 class BaseInfoConfig(BaseModel):
     """Minimum info about a Gaia ecosystem needed for Ouranos to register it.
@@ -249,7 +244,7 @@ class ManagementConfig(BaseModel):
         if isinstance(flag, int):
             flag = ManagementFlags(flag)
         payload = {management.name: True for management in flag}
-        return cls(**payload)
+        return cls(**payload)  # type: ignore
 
 
 class ManagementConfigDict(TypedDict):
@@ -414,7 +409,7 @@ class NycthemeralSpanConfig(BaseModel):
                 )
             hours, minutes = value.replace('H', 'h').split("h")
             if minutes == "":
-                minutes = 0
+                minutes = "0"
             return time(int(hours), int(minutes))
 
 
@@ -608,11 +603,11 @@ class AnonymousHardwareConfig(BaseModel):
         return safe_enum_from_name(HardwareLevel, value)
 
     @field_validator("measures", mode="before")
-    def parse_measures(cls, value: str | list[str] | None):
+    def parse_measures(cls, value: str | list[str] | list[dict[str, str | None]] | None):
         if value is None:
             return []
         if isinstance(value, str):
-            value = value
+            value = [value]
         rv = []
         for v in value:
             if isinstance(v, str):
@@ -622,8 +617,9 @@ class AnonymousHardwareConfig(BaseModel):
                     unit = v_split[1]
                 except IndexError:
                     unit = None
-                v = {"name": name, "unit": unit}
-            rv.append(v)
+                rv.append({"name": name, "unit": unit})
+            else:
+                rv.append(v)
         return rv
 
     @field_validator("plants", mode="before")
@@ -1198,7 +1194,7 @@ class BufferedDataPayload(BaseModel):
     :arg data: a list of data (DB rows) that could not be sent before.
     :arg uuid: the id of the transaction.
     """
-    data: list[NamedTuple]
+    data: list[BufferedSensorRecord] | list[BufferedActuatorRecord]
     uuid: UUID
 
 
@@ -1241,19 +1237,10 @@ class BufferedSensorsDataPayloadDict(BufferedDataPayloadDict):
     data: list[BufferedSensorRecord]
 
 
-class BufferedHealthRecordPayload(BufferedDataPayload):
-    """Payload to send a list of 'BufferedSensorRecord' from Gaia to Ouranos.
-
-    :arg data: a list of 'BufferedSensorRecord' that could not be sent before.
-    :arg uuid: the id of the transaction.
-    """
-    data: list[BufferedSensorRecord]
-    uuid: UUID
+BufferedHealthRecordPayload = BufferedSensorsDataPayload
 
 
-class BufferedHealthRecordPayloadDict(BufferedDataPayloadDict):
-    """Cf. related BaseModel."""
-    data: list[BufferedSensorRecord]
+BufferedHealthRecordPayloadDict = BufferedSensorsDataPayloadDict
 
 
 class BufferedActuatorRecord(NamedTuple):
@@ -1327,4 +1314,4 @@ _imported = {
     "TypedDict", "UUID", "uuid4"
 }
 
-__all__ = [_ for _ in dir() if _ not in ["_imported", *_imported, *__builtins__]]
+__all__ = [_ for _ in dir() if _ not in ["_imported", *_imported, *__builtins__]]  # type: ignore

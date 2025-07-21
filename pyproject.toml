@@ -29,3 +29,6 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.mypy]
+allow_redefinition = "True"

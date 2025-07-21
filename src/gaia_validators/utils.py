@@ -61,7 +61,7 @@ def get_sun_times(
         meaning: get_hour_angle(angle) for angle, meaning in sun_angles.items()
     }
 
-    times = {
+    times: dict[str, float | None] = {
         "solar_noon": st,
     }
     for meaning, ha in hour_angles.items():
