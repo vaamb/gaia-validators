@@ -633,14 +633,14 @@ class AnonymousHardwareConfig(BaseModel):
 
 class AnonymousHardwareConfigDict(TypedDict):
     """Cf. related BaseModel."""
-    name: str
-    address: str
-    type: HardwareType
-    level: HardwareLevel
-    model: str
-    measures: list[MeasureDict]
-    plants: list[str]
-    multiplexer_model: str | None
+    name: str | MissingValue
+    address: str | MissingValue
+    type: HardwareType | MissingValue
+    level: HardwareLevel | MissingValue
+    model: str | MissingValue
+    measures: list[MeasureDict] | MissingValue
+    plants: list[str] | MissingValue
+    multiplexer_model: str | None | MissingValue
 
 
 class HardwareConfig(AnonymousHardwareConfig):
@@ -653,7 +653,7 @@ class HardwareConfig(AnonymousHardwareConfig):
 
 class HardwareConfigDict(AnonymousHardwareConfigDict):
     """Cf. related BaseModel."""
-    uid: str
+    uid: str | MissingValue
 
 
 # Plants
@@ -679,10 +679,10 @@ class AnonymousPlantConfig(BaseModel):
 
 
 class AnonymousPlantConfigDict(TypedDict):
-    name: str
-    species: str | None
-    sowing_date: datetime | None
-    hardware: list[str]
+    name: str | MissingValue
+    species: str | None | MissingValue
+    sowing_date: datetime | None | MissingValue
+    hardware: list[str] | MissingValue
 
 
 class PlantConfig(AnonymousPlantConfig):
@@ -690,7 +690,7 @@ class PlantConfig(AnonymousPlantConfig):
 
 
 class PlantConfigDict(AnonymousPlantConfigDict):
-    uid: str
+    uid: str | MissingValue
 
 
 # Data, records and warnings
