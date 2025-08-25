@@ -460,6 +460,9 @@ SkyConfigDict = NycthemeralCycleConfigDict
 class ClimateParameter(StrEnum):
     """Climate parameters that can be controlled by Gaia ecosystem subroutines.
 
+    Climate parameters allow to control the environment of a Gaia ecosystem on
+    the long-term scale.
+
     Used by Gaia and Ouranos.
     """
     temperature = "temperature"
@@ -554,6 +557,61 @@ class ClimateConfig(AnonymousClimateConfig):
 class ClimateConfigDict(AnonymousClimateConfigDict):
     """Cf. related BaseModel."""
     parameter: ClimateParameter
+
+
+class WeatherParameter(StrEnum):
+    """Weather parameters that can be controlled by Gaia ecosystem subroutines.
+
+    Weather parameters allow to control the environment of a Gaia ecosystem on
+    the short-term scale. They are typically used to simulate short-term
+    disturbing events.
+
+    Used by Gaia and Ouranos.
+    """
+    rain = "rain"
+    fog = "fog"
+    wind_gust = "wind_gust"
+
+
+class AnonymousWeatherConfig(BaseModel):
+    """Configuration for controlling one weather parameter.
+
+    Used by Gaia in the ecosystems configuration file.
+
+    Rem: AnonymousWeatherConfig does not store the parameter name and should
+    only be used when its named is linked to the config (for ex: in a dict)
+
+    pattern is a Cron-like string
+    """
+    pattern: str
+    duration: float
+    level: float = 100
+    linked_actuator: str | None = None
+
+
+class AnonymousWeatherConfigDict(TypedDict):
+    """Cf. related BaseModel."""
+    pattern: str
+    duration: float
+    level: float
+    linked_actuator: str | None
+
+
+class WeatherConfig(AnonymousWeatherConfig):
+    """Configuration info for a single weather parameter.
+
+    Used by Ouranos.
+    """
+    parameter: WeatherParameter
+
+    @field_validator("parameter", mode="before")
+    def parse_parameter(cls, value):
+        return safe_enum_from_name(WeatherParameter, value)
+
+
+class WeatherConfigDict(AnonymousWeatherConfigDict):
+    """Cf. related BaseModel."""
+    parameter: WeatherParameter
 
 
 # Hardware
@@ -1105,7 +1163,18 @@ class ClimateConfigPayload(EcosystemPayload):
 
 
 class ClimateConfigPayloadDict(EcosystemPayloadDict):
+    """Cf. related BaseModel."""
     data: list[ClimateConfigDict]
+
+
+class WeatherConfigPayload(EcosystemPayload):
+    """Payload to send a list of 'WeatherConfig' from Gaia to Ouranos."""
+    data: list[WeatherConfig] = Field(default_factory=list)
+
+
+class WeatherConfigPayloadDict(EcosystemPayloadDict):
+    """Cf. related BaseModel."""
+    data: list[WeatherConfigDict]
 
 
 class HardwareConfigPayload(EcosystemPayload):
