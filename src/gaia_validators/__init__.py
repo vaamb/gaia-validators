@@ -516,31 +516,6 @@ class ClimateConfigDict(AnonymousClimateConfigDict):
     parameter: ClimateParameter
 
 
-class EnvironmentConfig(BaseModel):
-    """Configuration for the control of the environment of one ecosystem.
-
-    For the detail of the various attributes, see the related models.
-
-    Used as part of a payload sent between Gaia and Ouranos.
-    """
-    chaos: ChaosConfig = Field(default_factory=ChaosConfig)
-    nycthemeral_cycle: NycthemeralCycleConfig = Field(default_factory=NycthemeralCycleConfig)
-    climate: list[ClimateConfig] = Field(default_factory=list)
-
-    @field_validator("climate", mode="before")
-    def format_climate(cls, value: dict | list):
-        if isinstance(value, dict):
-            return [{"parameter": key, **value} for key, value in value.items()]
-        return value
-
-
-class EnvironmentConfigDict(TypedDict):
-    """Cf. related BaseModel."""
-    chaos: ChaosConfigDict
-    nycthemeral_cycle: NycthemeralCycleConfigDict
-    climate: list[ClimateConfigDict]
-
-
 # Hardware
 class HardwareLevel(StrEnum):
     """Level at which the hardware operates."""
@@ -1044,16 +1019,6 @@ class ManagementConfigPayload(EcosystemPayload):
 class ManagementConfigPayloadDict(EcosystemPayloadDict):
     """Cf. related BaseModel."""
     data: ManagementConfigDict
-
-
-class EnvironmentConfigPayload(EcosystemPayload):
-    """Payload to send 'EnvironmentConfig' from Gaia to Ouranos."""
-    data: EnvironmentConfig
-
-
-class EnvironmentConfigPayloadDict(EcosystemPayloadDict):
-    """Cf. related BaseModel."""
-    data: EnvironmentConfigDict
 
 
 class ChaosParametersPayload(EcosystemPayload):
