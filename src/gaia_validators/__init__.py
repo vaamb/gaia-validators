@@ -550,6 +550,10 @@ class MeasureDict(TypedDict):
     unit: str | None
 
 
+def _type_group() -> set[str]:
+    return {"__type__"}
+
+
 class AnonymousHardwareConfig(BaseModel):
     """Configuration info for a single unidentified piece of hardware.
 
@@ -562,6 +566,7 @@ class AnonymousHardwareConfig(BaseModel):
     address: str
     type: HardwareType
     level: HardwareLevel
+    groups: set[str] = Field(default_factory=_type_group)
     model: str
     measures: list[Measure] = Field(default_factory=list, validation_alias="measure")
     plants: list[str] = Field(default_factory=list, validation_alias="plant")
@@ -576,6 +581,14 @@ class AnonymousHardwareConfig(BaseModel):
     @field_validator("level", mode="before")
     def parse_level(cls, value):
         return safe_enum_from_name(HardwareLevel, value)
+
+    @field_validator("groups", mode="before")
+    def parse_groups(cls, value: str | list[str] | None):
+        if value is None:
+            return {"__type__"}
+        if isinstance(value, str):
+            return {value}
+        return set(value)
 
     @field_validator("measures", mode="before")
     def parse_measures(cls, value: str | list[str] | list[dict[str, str | None]] | None):
@@ -612,6 +625,7 @@ class AnonymousHardwareConfigDict(TypedDict):
     address: str | MissingValue
     type: HardwareType | MissingValue
     level: HardwareLevel | MissingValue
+    groups: set[str]
     model: str | MissingValue
     measures: list[MeasureDict] | MissingValue
     plants: list[str] | MissingValue
