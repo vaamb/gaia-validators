@@ -6,7 +6,8 @@ from typing import Any, NamedTuple, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
 from pydantic import (
-    BaseModel as _BaseModel, ConfigDict, Field, field_validator, GetCoreSchemaHandler)
+    BaseModel as _BaseModel, ConfigDict, Field, field_validator, GetCoreSchemaHandler,
+    model_serializer)
 from pydantic.dataclasses import dataclass
 from pydantic_core import core_schema
 from typing_extensions import Self
@@ -543,6 +544,12 @@ class HardwareType(IntFlag):
 class Measure(BaseModel):
     name: str
     unit: str | None = None
+
+
+class SerializableMeasure(Measure):
+    @model_serializer
+    def serialize_model(self) -> str:
+        return f"{self.name}|{self.unit if self.unit is not None else ''}"
 
 
 class MeasureDict(TypedDict):
