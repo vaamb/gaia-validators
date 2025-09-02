@@ -608,10 +608,7 @@ class AnonymousHardwareConfig(BaseModel):
             if isinstance(v, str):
                 v_split = v.split("|")
                 name = v_split[0]
-                try:
-                    unit = v_split[1]
-                except IndexError:
-                    unit = None
+                unit = v_split[1] if len(v_split) > 1 else None
                 rv.append({"name": name, "unit": unit})
             else:
                 rv.append(v)
