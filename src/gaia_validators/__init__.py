@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from datetime import date, datetime, time, timedelta, timezone
 from enum import auto, Enum, IntEnum, IntFlag, StrEnum
-from typing import Any, NamedTuple, Type, TypedDict, TypeVar
+from typing import Any, ItemsView, Iterable, NamedTuple, Type, TypedDict, TypeVar
 from uuid import UUID, uuid4
 
 from pydantic import (
     BaseModel as _BaseModel, ConfigDict, Field, field_validator, GetCoreSchemaHandler,
-    model_serializer)
+    model_serializer, model_validator)
 from pydantic.dataclasses import dataclass
 from pydantic_core import core_schema
 from typing_extensions import Self
@@ -466,6 +466,36 @@ class ClimateParameter(StrEnum):
     humidity = "humidity"
     light = "light"
     wind = "wind"
+
+
+class ActuatorCouple(BaseModel):
+    increase: str | None
+    decrease: str | None
+
+    def __iter__(self) -> Iterable[str | None]:
+        return iter((self.increase, self.decrease))
+
+    def items(self) -> ItemsView[str, str | None]:
+        return self.__dict__.items()
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_model(cls, data: Any):
+        if "couple" in data:
+            if len(data["couple"]) != 2:
+                raise ValueError("ActuatorCouple's couple should be a tuple of length 2")
+            return {
+                "increase": data["couple"][0],
+                "decrease": data["couple"][1],
+            }
+        return data
+
+    @field_validator("increase", "decrease", mode="before")
+    @classmethod
+    def validate_increase_decrease(cls, value):
+        if isinstance(value, Enum):
+            return value.name
+        return value
 
 
 class AnonymousClimateConfig(BaseModel):
