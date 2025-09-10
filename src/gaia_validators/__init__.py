@@ -510,6 +510,7 @@ class AnonymousClimateConfig(BaseModel):
     night: float
     hysteresis: float = 0.0
     alarm: float | None = None
+    linked_actuators: ActuatorCouple | None = None
 
     @field_validator("day", "night", "hysteresis", mode="before")
     def cast_as_float(cls, value):
@@ -528,6 +529,7 @@ class AnonymousClimateConfigDict(TypedDict):
     night: float
     hysteresis: float
     alarm: float | None
+    linked_actuators: ActuatorCouple | None
 
 
 class ClimateConfig(AnonymousClimateConfig):
