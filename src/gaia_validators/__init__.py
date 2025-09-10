@@ -885,6 +885,7 @@ class ActuatorStateRecord(NamedTuple):
     Used by Gaia events and as part of a payload sent between Gaia and Ouranos.
     """
     type: HardwareType
+    group: str
     active: bool
     mode: ActuatorMode
     status: bool
@@ -1152,6 +1153,7 @@ class TurnActuatorPayload(BaseModel):
     """
     ecosystem_uid: str | None = None  # can be None if transferred in parallel
     actuator: HardwareType
+    group: str = Field(default_factory=lambda data: data["actuator"].name)
     mode: ActuatorModePayload = ActuatorModePayload.automatic
     countdown: float = 0.0
 
@@ -1170,6 +1172,7 @@ class TurnActuatorPayloadDict(TypedDict):
     """Cf. related BaseModel."""
     ecosystem_uid: str | None
     actuator: HardwareType
+    group: str
     mode: ActuatorModePayload
     countdown: float
 
@@ -1286,6 +1289,7 @@ class BufferedActuatorRecord(NamedTuple):
     """
     ecosystem_uid: str
     type: HardwareType
+    group: str
     active: bool
     mode: ActuatorMode
     status: bool
