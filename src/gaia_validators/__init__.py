@@ -498,6 +498,11 @@ class ActuatorCouple(BaseModel):
         return value
 
 
+class ActuatorCoupleDict(TypedDict):
+    increase: str | None
+    decrease: str | None
+
+
 class AnonymousClimateConfig(BaseModel):
     """Configuration for controlling one climatic parameter.
 
@@ -529,7 +534,7 @@ class AnonymousClimateConfigDict(TypedDict):
     night: float
     hysteresis: float
     alarm: float | None
-    linked_actuators: ActuatorCouple | None
+    linked_actuators: ActuatorCoupleDict | None
 
 
 class ClimateConfig(AnonymousClimateConfig):
