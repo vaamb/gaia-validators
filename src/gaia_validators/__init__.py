@@ -193,7 +193,7 @@ class ManagementFlags(IntFlag):
     light = 2
     camera = 4
     database = 8
-    # available basal management = 16
+    weather = 16
     # available basal management = 32
     # available basal management = 64
     # available basal management = 128
@@ -225,6 +225,7 @@ class ManagementConfig(BaseModel):
 
     alarms: bool = False
     climate: bool = False
+    weather: bool = False
     watering: bool = False
     health: bool = False
     pictures: bool = False
