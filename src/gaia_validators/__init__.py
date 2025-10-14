@@ -258,7 +258,7 @@ class ManagementConfigDict(TypedDict):
 
     alarms: bool
     climate: bool
-    watering: bool
+    weather: bool
     health: bool
     pictures: bool
 
