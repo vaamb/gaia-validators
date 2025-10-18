@@ -222,10 +222,10 @@ class ManagementConfig(BaseModel):
     light: bool = False
     camera: bool = False
     database: bool = False
+    weather: bool = False
 
     alarms: bool = False
     climate: bool = False
-    weather: bool = False
     watering: bool = False
     health: bool = False
     pictures: bool = False
@@ -255,10 +255,11 @@ class ManagementConfigDict(TypedDict):
     light: bool
     camera: bool
     database: bool
+    weather: bool
 
     alarms: bool
     climate: bool
-    weather: bool
+    watering: bool
     health: bool
     pictures: bool
 
