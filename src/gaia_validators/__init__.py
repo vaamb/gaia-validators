@@ -16,10 +16,6 @@ from typing_extensions import Self
 T = TypeVar("T", bound=Enum)
 
 
-def _get_enum_names(enum: Type[Enum]) -> list[str]:
-    return [i.name for i in enum]
-
-
 def safe_enum_from_name(enum: Type[T], name: str | T) -> T:
     """Return the enum member whose name is 'name'
 
@@ -67,13 +63,17 @@ class BaseModel(_BaseModel):
     )
 
 
-@dataclass()
 class Empty:
     """A class for empty data/payload.
 
     Used by Gaia.
     """
-    pass
+    _instance = None
+
+    def __new__(cls):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
 
 empty = Empty()
