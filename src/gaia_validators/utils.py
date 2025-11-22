@@ -1,6 +1,8 @@
 from datetime import date, datetime, time, timedelta, timezone
 from math import acos, asin, cos, pi, sin
 
+from pydantic.json_schema import models_json_schema
+
 import gaia_validators as gv
 
 
@@ -92,3 +94,36 @@ def get_sun_times(
             }
         }
     )
+
+
+def generate_json_schemas() -> dict:
+    _, schemas = models_json_schema([
+        # Engine payload
+        (gv.EnginePingPayload, "validation"),
+        (gv.PlacesPayload, "validation"),
+        # Ecosystem config payloads
+        (gv.BaseInfoConfigPayload, "validation"),
+        (gv.ManagementConfigPayload, "validation"),
+        (gv.ChaosParametersPayload, "validation"),
+        (gv.NycthemeralCycleConfigPayload, "validation"),
+        (gv.ClimateConfigPayload, "validation"),
+        (gv.WeatherConfigPayload, "validation"),
+        (gv.HardwareConfigPayload, "validation"),
+        (gv.PlantConfigPayload, "validation"),
+        # Data payloads
+        (gv.SensorsDataPayload, "validation"),
+        (gv.NycthemeralCycleInfoPayload, "validation"),
+        (gv.LightDataPayload, "validation"),
+        (gv.ActuatorsDataPayload, "validation"),
+        (gv.HealthDataPayload, "validation"),
+        # Interaction payloads
+        (gv.TurnActuatorPayload, "validation"),
+        (gv.CrudPayload, "validation"),
+        (gv.RequestResult, "validation"),
+        # Buffered data payload
+        (gv.BufferedDataPayload, "validation"),
+        # BufferedHealthRecordPayload = BufferedSensorsDataPayload
+        (gv.BufferedActuatorsStatePayload, "validation"),
+    ])
+
+    return schemas
