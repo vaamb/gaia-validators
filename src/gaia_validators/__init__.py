@@ -669,6 +669,7 @@ class AnonymousHardwareConfig(BaseModel):
     when its id is linked to the config (for ex: in a dict)
     """
     name: str
+    active: bool = True
     address: str
     type: HardwareType
     level: HardwareLevel
