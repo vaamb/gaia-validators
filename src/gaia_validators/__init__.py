@@ -656,10 +656,6 @@ class MeasureDict(TypedDict):
     unit: str | None
 
 
-def _type_group() -> set[str]:
-    return {"__type__"}
-
-
 class AnonymousHardwareConfig(BaseModel):
     """Configuration info for a single unidentified piece of hardware.
 
@@ -673,11 +669,21 @@ class AnonymousHardwareConfig(BaseModel):
     address: str
     type: HardwareType
     level: HardwareLevel
-    groups: set[str] = Field(default_factory=_type_group)
+    groups: set[str] = Field(default_factory=set)
     model: str
     measures: list[Measure] = Field(default_factory=list, validation_alias="measure")
     plants: list[str] = Field(default_factory=list, validation_alias="plant")
     multiplexer_model: str | None = Field(default=None, validation_alias="multiplexer")
+
+    @model_validator(mode="before")
+    @classmethod
+    def no_empty_groups(cls, data: Any):
+        if not data.get("groups"):
+            hardware_type = data["type"]
+            if isinstance(hardware_type, Enum):
+                hardware_type = hardware_type.name
+            data["groups"] = hardware_type
+        return data
 
     @field_validator("type", mode="before")
     def parse_type(cls, value):
@@ -690,9 +696,8 @@ class AnonymousHardwareConfig(BaseModel):
         return safe_enum_from_name(HardwareLevel, value)
 
     @field_validator("groups", mode="before")
+    @classmethod
     def parse_groups(cls, value: str | list[str] | None):
-        if value is None:
-            return {"__type__"}
         if isinstance(value, str):
             return {value}
         return set(value)
@@ -726,10 +731,11 @@ class AnonymousHardwareConfig(BaseModel):
 class AnonymousHardwareConfigDict(TypedDict):
     """Cf. related BaseModel."""
     name: str | MissingValue
+    active: bool | MissingValue
     address: str | MissingValue
     type: HardwareType | MissingValue
     level: HardwareLevel | MissingValue
-    groups: set[str]
+    groups: set[str] | MissingValue
     model: str | MissingValue
     measures: list[MeasureDict] | MissingValue
     plants: list[str] | MissingValue
