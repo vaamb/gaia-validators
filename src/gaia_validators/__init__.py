@@ -697,7 +697,7 @@ class AnonymousHardwareConfig(BaseModel):
 
     @field_validator("groups", mode="before")
     @classmethod
-    def parse_groups(cls, value: str | list[str] | None):
+    def parse_groups(cls, value: str | list[str]):
         if isinstance(value, str):
             return {value}
         return set(value)
