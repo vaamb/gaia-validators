@@ -675,16 +675,6 @@ class AnonymousHardwareConfig(BaseModel):
     plants: list[str] = Field(default_factory=list, validation_alias="plant")
     multiplexer_model: str | None = Field(default=None, validation_alias="multiplexer")
 
-    @model_validator(mode="before")
-    @classmethod
-    def no_empty_groups(cls, data: Any):
-        if not data.get("groups"):
-            hardware_type = data["type"]
-            if isinstance(hardware_type, Enum):
-                hardware_type = hardware_type.name
-            data["groups"] = hardware_type
-        return data
-
     @field_validator("type", mode="before")
     def parse_type(cls, value):
         if isinstance(value, int):
@@ -726,6 +716,16 @@ class AnonymousHardwareConfig(BaseModel):
         if isinstance(value, str):
             return [value]
         return value
+
+    @model_validator(mode="before")
+    @classmethod
+    def no_empty_groups(cls, data: Any):
+        if not data.get("groups"):
+            hardware_type = data["type"]
+            if isinstance(hardware_type, Enum):
+                hardware_type = hardware_type.name
+            data["groups"] = {hardware_type}
+        return data
 
 
 class AnonymousHardwareConfigDict(TypedDict):
