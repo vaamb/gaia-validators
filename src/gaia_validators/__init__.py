@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from datetime import date, datetime, time, timedelta, timezone
 from enum import auto, Enum, IntEnum, IntFlag, StrEnum
-from typing import Any, ItemsView, Iterable, NamedTuple, Type, TypedDict, TypeVar
+from typing import (
+    Any, ItemsView, Iterable, NamedTuple, Sequence, Type, TypedDict, TypeVar)
 from uuid import UUID, uuid4
 
 from pydantic import (
-    BaseModel as _BaseModel, ConfigDict, Field, field_validator, GetCoreSchemaHandler,
-    model_serializer, model_validator)
+    BaseModel as _BaseModel, ConfigDict, Field, field_serializer, field_validator,
+    GetCoreSchemaHandler, model_serializer, model_validator,
+    SerializerFunctionWrapHandler, SerializationInfo)
 from pydantic.dataclasses import dataclass
 from pydantic_core import core_schema
 from typing_extensions import Self
@@ -737,6 +739,17 @@ class AnonymousHardwareConfig(BaseModel):
                 hardware_type = hardware_type.name
             data["groups"] = [hardware_type]
         return data
+
+    @model_serializer(mode="wrap")
+    def serialize_model(
+            self,
+            handler: SerializerFunctionWrapHandler,
+            info: SerializationInfo,
+    ) -> dict[str, object]:
+        serialized  = handler(self)
+        if info.exclude_defaults and self.groups == [self.type.name]:
+            serialized.pop("groups")
+        return serialized
 
 
 class AnonymousHardwareConfigDict(TypedDict):
