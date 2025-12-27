@@ -678,12 +678,14 @@ class AnonymousHardwareConfig(BaseModel):
     multiplexer_model: str | None = Field(default=None, validation_alias="multiplexer")
 
     @field_validator("type", mode="before")
+    @classmethod
     def parse_type(cls, value):
         if isinstance(value, int):
             return HardwareType(value)
         return safe_enum_from_name(HardwareType, value)
 
     @field_validator("level", mode="before")
+    @classmethod
     def parse_level(cls, value):
         return safe_enum_from_name(HardwareLevel, value)
 
@@ -706,6 +708,7 @@ class AnonymousHardwareConfig(BaseModel):
         return rv
 
     @field_validator("measures", mode="before")
+    @classmethod
     def parse_measures(cls, value: str | list[str] | list[dict[str, str | None]] | None):
         if value is None:
             return []
@@ -723,6 +726,7 @@ class AnonymousHardwareConfig(BaseModel):
         return rv
 
     @field_validator("plants", mode="before")
+    @classmethod
     def parse_plants(cls, value: str | list[str] | None):
         if value is None:
             return []
