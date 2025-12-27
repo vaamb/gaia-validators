@@ -669,7 +669,7 @@ class AnonymousHardwareConfig(BaseModel):
     address: str
     type: HardwareType
     level: HardwareLevel
-    groups: set[str] = Field(default_factory=set)
+    groups: list[str] = Field(default_factory=list)
     model: str
     measures: list[Measure] = Field(default_factory=list, validation_alias="measure")
     plants: list[str] = Field(default_factory=list, validation_alias="plant")
@@ -689,8 +689,19 @@ class AnonymousHardwareConfig(BaseModel):
     @classmethod
     def parse_groups(cls, value: str | list[str]):
         if isinstance(value, str):
-            return {value}
-        return set(value)
+            return [value]
+        elif isinstance(value, (Sequence, set)):
+            rv = [*{*value}]
+            rv.sort()
+            return rv
+        else:
+            raise ValueError(f"Value of type {type(value)} is not supported")
+
+    @field_serializer("groups")
+    def serialize_groups(self, value: list[str]):
+        rv = [*{*value}]
+        rv.sort()
+        return rv
 
     @field_validator("measures", mode="before")
     def parse_measures(cls, value: str | list[str] | list[dict[str, str | None]] | None):
@@ -724,7 +735,7 @@ class AnonymousHardwareConfig(BaseModel):
             hardware_type = data["type"]
             if isinstance(hardware_type, Enum):
                 hardware_type = hardware_type.name
-            data["groups"] = {hardware_type}
+            data["groups"] = [hardware_type]
         return data
 
 
@@ -735,7 +746,7 @@ class AnonymousHardwareConfigDict(TypedDict):
     address: str | MissingValue
     type: HardwareType | MissingValue
     level: HardwareLevel | MissingValue
-    groups: set[str] | MissingValue
+    groups: list[str] | MissingValue
     model: str | MissingValue
     measures: list[MeasureDict] | MissingValue
     plants: list[str] | MissingValue
