@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from datetime import date, datetime, time, timedelta, timezone
 from enum import auto, Enum, IntEnum, IntFlag, StrEnum
-from typing import Any, ItemsView, Iterable, NamedTuple, Type, TypedDict, TypeVar
+from typing import (
+    Any, ItemsView, Iterable, NamedTuple, Sequence, Type, TypedDict, TypeVar)
 from uuid import UUID, uuid4
 
 from pydantic import (
-    BaseModel as _BaseModel, ConfigDict, Field, field_validator, GetCoreSchemaHandler,
-    model_serializer, model_validator)
+    BaseModel as _BaseModel, ConfigDict, Field, field_serializer, field_validator,
+    GetCoreSchemaHandler, model_serializer, model_validator,
+    SerializerFunctionWrapHandler, SerializationInfo)
 from pydantic.dataclasses import dataclass
 from pydantic_core import core_schema
 from typing_extensions import Self
@@ -669,19 +671,21 @@ class AnonymousHardwareConfig(BaseModel):
     address: str
     type: HardwareType
     level: HardwareLevel
-    groups: set[str] = Field(default_factory=set)
+    groups: list[str] = Field(default_factory=list)
     model: str
     measures: list[Measure] = Field(default_factory=list, validation_alias="measure")
     plants: list[str] = Field(default_factory=list, validation_alias="plant")
     multiplexer_model: str | None = Field(default=None, validation_alias="multiplexer")
 
     @field_validator("type", mode="before")
+    @classmethod
     def parse_type(cls, value):
         if isinstance(value, int):
             return HardwareType(value)
         return safe_enum_from_name(HardwareType, value)
 
     @field_validator("level", mode="before")
+    @classmethod
     def parse_level(cls, value):
         return safe_enum_from_name(HardwareLevel, value)
 
@@ -689,10 +693,22 @@ class AnonymousHardwareConfig(BaseModel):
     @classmethod
     def parse_groups(cls, value: str | list[str]):
         if isinstance(value, str):
-            return {value}
-        return set(value)
+            return [value]
+        elif isinstance(value, (Sequence, set)):
+            rv = [*{*value}]
+            rv.sort()
+            return rv
+        else:
+            raise ValueError(f"Value of type {type(value)} is not supported")
+
+    @field_serializer("groups")
+    def serialize_groups(self, value: list[str]):
+        rv = [*{*value}]
+        rv.sort()
+        return rv
 
     @field_validator("measures", mode="before")
+    @classmethod
     def parse_measures(cls, value: str | list[str] | list[dict[str, str | None]] | None):
         if value is None:
             return []
@@ -710,6 +726,7 @@ class AnonymousHardwareConfig(BaseModel):
         return rv
 
     @field_validator("plants", mode="before")
+    @classmethod
     def parse_plants(cls, value: str | list[str] | None):
         if value is None:
             return []
@@ -724,8 +741,19 @@ class AnonymousHardwareConfig(BaseModel):
             hardware_type = data["type"]
             if isinstance(hardware_type, Enum):
                 hardware_type = hardware_type.name
-            data["groups"] = {hardware_type}
+            data["groups"] = [hardware_type]
         return data
+
+    @model_serializer(mode="wrap")
+    def serialize_model(
+            self,
+            handler: SerializerFunctionWrapHandler,
+            info: SerializationInfo,
+    ) -> dict[str, object]:
+        serialized  = handler(self)
+        if info.exclude_defaults and self.groups == [self.type.name]:
+            serialized.pop("groups")
+        return serialized
 
 
 class AnonymousHardwareConfigDict(TypedDict):
@@ -735,7 +763,7 @@ class AnonymousHardwareConfigDict(TypedDict):
     address: str | MissingValue
     type: HardwareType | MissingValue
     level: HardwareLevel | MissingValue
-    groups: set[str] | MissingValue
+    groups: list[str] | MissingValue
     model: str | MissingValue
     measures: list[MeasureDict] | MissingValue
     plants: list[str] | MissingValue
