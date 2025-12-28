@@ -1282,14 +1282,18 @@ class TurnActuatorPayload(BaseModel):
 
     :arg ecosystem_uid: the uid of the ecosystem in which a change is requested.
     :arg actuator: the type of actuator to change.
-    :arg mode: the desired mode. Rem: it is a 'ActuatorModePayload', not a
+    :arg group: the actuator group to change.
+    :arg mode: the desired mode. Rem: it is a 'ActuatorModePayload', not an
               'ActuatorMode'.
+    :arg level: the level to which the actuator should be set. Is only used if
+                the mode is 'on'.
     :arg countdown: the delay before which to change mode.
     """
     ecosystem_uid: str | None = None  # can be None if transferred in parallel
     actuator: HardwareType
     group: str = Field(default_factory=lambda data: data["actuator"].name)
     mode: ActuatorModePayload = ActuatorModePayload.automatic
+    level: int = 100
     countdown: float = 0.0
 
     @field_validator("actuator", mode="before")
@@ -1309,6 +1313,7 @@ class TurnActuatorPayloadDict(TypedDict):
     actuator: HardwareType
     group: str
     mode: ActuatorModePayload
+    level: int
     countdown: float
 
 
