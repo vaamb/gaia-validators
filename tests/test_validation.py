@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+from pydantic_core import ValidationError
+
 import gaia_validators as gv
 
 
@@ -138,3 +140,62 @@ class TestWeather(TestCase):
 
         self.assertEqual(weather.level, 100.0)
         self.assertEqual(weather.linked_actuator, None)
+
+
+class TestClamps(TestCase):
+    def test_chaos(self):
+        with self.assertRaises(ValidationError):
+            gv.ChaosConfig(
+                frequency=-1,
+            )
+
+        with self.assertRaises(ValidationError):
+            gv.ChaosConfig(
+                duration=-1,
+            )
+
+        with self.assertRaises(ValidationError):
+            gv.ChaosConfig(
+                intensity=-1.0,
+            )
+
+    def test_turn_actuator(self):
+        with self.assertRaises(ValidationError):
+            gv.TurnActuatorPayload(
+                actuator="actuator",
+                level=-1.0,
+            )
+
+        with self.assertRaises(ValidationError):
+            gv.TurnActuatorPayload(
+                actuator="actuator",
+                level=101.0,
+            )
+
+        with self.assertRaises(ValidationError):
+            gv.TurnActuatorPayload(
+                actuator="actuator",
+                countdown=-1.0,
+            )
+
+    def test_weather(self):
+        with self.assertRaises(ValidationError):
+            gv.WeatherConfig(
+                parameter="rain",
+                pattern="* * * * *",
+                duration=0.0,
+            )
+
+        with self.assertRaises(ValidationError):
+            gv.WeatherConfig(
+                parameter="rain",
+                pattern="* * * * *",
+                level=-1.0,
+            )
+
+        with self.assertRaises(ValidationError):
+            gv.WeatherConfig(
+                parameter="rain",
+                pattern="* * * * *",
+                level=101.0,
+            )

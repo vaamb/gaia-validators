@@ -352,9 +352,9 @@ class ChaosConfig(BaseModel):
 
     Used by Gaia ecosystems configuration file.
     """
-    frequency: int = 0
-    duration: int = 0
-    intensity: float = 0.0
+    frequency: int = Field(default=0, ge=0)
+    duration: int = Field(default=0, ge=0)
+    intensity: float = Field(default=0.0, ge=0.0)
 
 
 class ChaosConfigDict(TypedDict):
@@ -589,8 +589,8 @@ class AnonymousWeatherConfig(BaseModel):
     pattern is a Cron-like string
     """
     pattern: str
-    duration: float
-    level: float = 100
+    duration: float = Field(gt=0.0)
+    level: float = Field(default=100.0, ge=0.0, le=100.0)
     linked_actuator: str | None = None
 
 
@@ -1301,8 +1301,8 @@ class TurnActuatorPayload(BaseModel):
     actuator: HardwareType
     group: str = Field(default_factory=lambda data: data["actuator"].name)
     mode: ActuatorModePayload = ActuatorModePayload.automatic
-    level: int = 100
-    countdown: float = 0.0
+    level: float = Field(default=100.0, ge=0.0, le=100.0)
+    countdown: float = Field(default=0.0, ge=0.0)
 
     @field_validator("actuator", mode="before")
     def parse_actuator(cls, value):
@@ -1321,7 +1321,7 @@ class TurnActuatorPayloadDict(TypedDict):
     actuator: HardwareType
     group: NotRequired[str]
     mode: ActuatorModePayload
-    level: NotRequired[int]
+    level: NotRequired[float]
     countdown: NotRequired[float]
 
 
