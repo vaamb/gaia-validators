@@ -598,7 +598,7 @@ class AnonymousWeatherConfigDict(TypedDict):
     """Cf. related BaseModel."""
     pattern: str
     duration: float
-    level: float
+    level: NotRequired[float]
     linked_actuator: NotRequired[str | None]
 
 
@@ -735,7 +735,12 @@ class AnonymousHardwareConfig(BaseModel):
             raise PydanticUseDefault
         if isinstance(value, str):
             return [value]
-        return value
+        elif isinstance(value, (Sequence, set)):
+            rv = [*{*value}]
+            rv.sort()
+            return rv
+        else:
+            raise ValueError(f"Value of type {type(value)} is not supported")
 
     @model_serializer(mode="wrap")
     def serialize_model(
