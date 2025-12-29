@@ -3,7 +3,8 @@ from __future__ import annotations
 from datetime import date, datetime, time, timedelta, timezone
 from enum import auto, Enum, IntEnum, IntFlag, StrEnum
 from typing import (
-    Any, ItemsView, Iterable, NamedTuple, Sequence, Type, TypedDict, TypeVar)
+    Any, ItemsView, Iterable, NamedTuple, NotRequired, Sequence, Type, TypedDict,
+    TypeVar)
 from uuid import UUID, uuid4
 
 from pydantic import (
@@ -11,7 +12,7 @@ from pydantic import (
     GetCoreSchemaHandler, model_serializer, model_validator,
     SerializerFunctionWrapHandler, SerializationInfo)
 from pydantic.dataclasses import dataclass
-from pydantic_core import core_schema
+from pydantic_core import core_schema, PydanticUseDefault
 from typing_extensions import Self
 
 
@@ -540,10 +541,10 @@ class AnonymousClimateConfigDict(TypedDict):
     """Cf. related BaseModel."""
     day: float
     night: float
-    hysteresis: float
-    alarm: float | None
-    linked_actuators: ActuatorCoupleDict | None
-    linked_measure: str | None
+    hysteresis: NotRequired[float]
+    alarm: NotRequired[float | None]
+    linked_actuators: NotRequired[ActuatorCoupleDict | None]
+    linked_measure: NotRequired[str | None]
 
 
 class ClimateConfig(AnonymousClimateConfig):
@@ -598,7 +599,7 @@ class AnonymousWeatherConfigDict(TypedDict):
     pattern: str
     duration: float
     level: float
-    linked_actuator: str | None
+    linked_actuator: NotRequired[str | None]
 
 
 class WeatherConfig(AnonymousWeatherConfig):
@@ -692,6 +693,8 @@ class AnonymousHardwareConfig(BaseModel):
     @field_validator("groups", mode="before")
     @classmethod
     def parse_groups(cls, value: str | list[str]):
+        if value is None:
+            raise PydanticUseDefault
         if isinstance(value, str):
             return [value]
         elif isinstance(value, (Sequence, set)):
@@ -711,7 +714,7 @@ class AnonymousHardwareConfig(BaseModel):
     @classmethod
     def parse_measures(cls, value: str | list[str] | list[dict[str, str | None]] | None):
         if value is None:
-            return []
+            raise PydanticUseDefault
         if isinstance(value, str):
             value = [value]
         rv = []
@@ -729,7 +732,7 @@ class AnonymousHardwareConfig(BaseModel):
     @classmethod
     def parse_plants(cls, value: str | list[str] | None):
         if value is None:
-            return []
+            raise PydanticUseDefault
         if isinstance(value, str):
             return [value]
         return value
@@ -749,15 +752,15 @@ class AnonymousHardwareConfig(BaseModel):
 class AnonymousHardwareConfigDict(TypedDict):
     """Cf. related BaseModel."""
     name: str | MissingValue
-    active: bool | MissingValue
+    active: NotRequired[bool | MissingValue]
     address: str | MissingValue
     type: HardwareType | MissingValue
     level: HardwareLevel | MissingValue
-    groups: list[str] | MissingValue
+    groups: NotRequired[list[str] | MissingValue]
     model: str | MissingValue
-    measures: list[MeasureDict] | MissingValue
-    plants: list[str] | MissingValue
-    multiplexer_model: str | None | MissingValue
+    measures: NotRequired[list[MeasureDict] | MissingValue]
+    plants: NotRequired[list[str] | MissingValue]
+    multiplexer_model: NotRequired[str | None | MissingValue]
 
 
 class HardwareConfig(AnonymousHardwareConfig):
@@ -789,7 +792,7 @@ class AnonymousPlantConfig(BaseModel):
     @field_validator("hardware", mode="before")
     def parse_hardware(cls, value: str | list[str] | None):
         if value is None:
-            return []
+            raise PydanticUseDefault
         if isinstance(value, str):
             return [value]
         return value
@@ -797,9 +800,9 @@ class AnonymousPlantConfig(BaseModel):
 
 class AnonymousPlantConfigDict(TypedDict):
     name: str | MissingValue
-    species: str | None | MissingValue
-    sowing_date: datetime | None | MissingValue
-    hardware: list[str] | MissingValue
+    species: NotRequired[str | None | MissingValue]
+    sowing_date: NotRequired[datetime | None | MissingValue]
+    hardware: NotRequired[list[str] | MissingValue]
 
 
 class PlantConfig(AnonymousPlantConfig):
@@ -1311,10 +1314,10 @@ class TurnActuatorPayloadDict(TypedDict):
     """Cf. related BaseModel."""
     ecosystem_uid: str | None
     actuator: HardwareType
-    group: str
+    group: NotRequired[str]
     mode: ActuatorModePayload
-    level: int
-    countdown: float
+    level: NotRequired[int]
+    countdown: NotRequired[float]
 
 
 class Route(BaseModel):
