@@ -590,7 +590,7 @@ class AnonymousWeatherConfig(BaseModel):
     """
     pattern: str
     duration: float
-    level: float = 100
+    level: float = Field(default=100, le=100, ge=0)
     linked_actuator: str | None = None
 
 
@@ -1301,7 +1301,7 @@ class TurnActuatorPayload(BaseModel):
     actuator: HardwareType
     group: str = Field(default_factory=lambda data: data["actuator"].name)
     mode: ActuatorModePayload = ActuatorModePayload.automatic
-    level: int = 100
+    level: float = Field(default=100, le=100, ge=0)
     countdown: float = 0.0
 
     @field_validator("actuator", mode="before")
@@ -1321,7 +1321,7 @@ class TurnActuatorPayloadDict(TypedDict):
     actuator: HardwareType
     group: NotRequired[str]
     mode: ActuatorModePayload
-    level: NotRequired[int]
+    level: NotRequired[float]
     countdown: NotRequired[float]
 
 
