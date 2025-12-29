@@ -141,6 +141,23 @@ class TestWeather(TestCase):
         self.assertEqual(weather.level, 100.0)
         self.assertEqual(weather.linked_actuator, None)
 
+    def test_regex(self):
+        weather_cfg = self._get_weather_cfg()
+
+        # The 5 groups are checked with the same rules
+        weather_cfg["pattern"] = "*/8 * * * *"
+        gv.WeatherConfig(**weather_cfg)
+
+        weather_cfg["pattern"] = "* 1,2,3,5,8,13,21 * * *"
+        gv.WeatherConfig(**weather_cfg)
+
+        weather_cfg["pattern"] = "* * 2-4 * *"
+        gv.WeatherConfig(**weather_cfg)
+
+        weather_cfg["pattern"] = "*-8 * * * *"
+        with self.assertRaises(ValidationError):
+            gv.WeatherConfig(**weather_cfg)
+
 
 class TestClamps(TestCase):
     def test_chaos(self):
@@ -190,6 +207,7 @@ class TestClamps(TestCase):
             gv.WeatherConfig(
                 parameter="rain",
                 pattern="* * * * *",
+                duration=1,
                 level=-1.0,
             )
 
@@ -197,5 +215,6 @@ class TestClamps(TestCase):
             gv.WeatherConfig(
                 parameter="rain",
                 pattern="* * * * *",
+                duration=1,
                 level=101.0,
             )

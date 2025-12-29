@@ -588,7 +588,7 @@ class AnonymousWeatherConfig(BaseModel):
 
     pattern is a Cron-like string
     """
-    pattern: str
+    pattern: str = Field(pattern=r"^(((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*(\/\d+)?) ?){5}$")
     duration: float = Field(gt=0.0)
     level: float = Field(default=100.0, ge=0.0, le=100.0)
     linked_actuator: str | None = None
