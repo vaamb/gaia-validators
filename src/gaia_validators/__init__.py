@@ -3,8 +3,17 @@ from __future__ import annotations
 from datetime import date, datetime, time, timedelta, timezone
 from enum import auto, Enum, IntEnum, IntFlag, StrEnum
 from typing import (
-    Any, ItemsView, Iterable, NamedTuple, NotRequired, Sequence, Type, TypedDict,
-    TypeVar)
+    Any,
+    ItemsView,
+    Iterable,
+    NamedTuple,
+    NotRequired,
+    overload,
+    Sequence,
+    Type,
+    TypedDict,
+    TypeVar,
+)
 from uuid import UUID, uuid4
 
 from pydantic import (
@@ -1487,6 +1496,39 @@ class RequestResultDict(TypedDict):
     uuid: str
     status: Result
     message: str | None
+
+
+@overload
+def to_identified(config: AnonymousHardwareConfigDict, identifier: dict[str, str]) -> HardwareConfigDict: ...
+
+@overload
+def to_identified(config: AnonymousClimateConfigDict, identifier: dict[str, str]) -> ClimateConfigDict: ...
+
+@overload
+def to_identified(config: AnonymousPlantConfigDict, identifier: dict[str, str]) -> PlantConfigDict: ...
+
+@overload
+def to_identified(config: AnonymousWeatherConfigDict, identifier: dict[str, str]) -> WeatherConfigDict: ...
+
+def to_identified(config: dict, identifier: dict[str, str]) -> dict:
+    return {**identifier, **config}
+
+
+@overload
+def to_anonymous(config: HardwareConfigDict, identifier: str) -> AnonymousHardwareConfigDict: ...
+
+@overload
+def to_anonymous(config: ClimateConfigDict, identifier: str) -> AnonymousClimateConfigDict: ...
+
+@overload
+def to_anonymous(config: PlantConfigDict, identifier: str) -> AnonymousPlantConfigDict: ...
+
+@overload
+def to_anonymous(config: WeatherConfigDict, identifier: str) -> AnonymousWeatherConfigDict: ...
+
+def to_anonymous(config: dict, identifier) -> dict:
+    config.pop(identifier)
+    return config
 
 
 _imported = {
