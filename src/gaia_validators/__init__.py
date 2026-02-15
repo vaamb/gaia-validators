@@ -1529,12 +1529,3 @@ def to_anonymous(config: WeatherConfigDict, identifier: str) -> AnonymousWeather
 def to_anonymous(config: dict, identifier) -> dict:
     config.pop(identifier)
     return config
-
-
-_imported = {
-    "_BaseModel", "annotations", "Any", "dataclass", "datetime", "EnumType",
-    "Field", "field_validator", "IntFlag", "Literal", "StrEnum", "time",
-    "TypedDict", "UUID", "uuid4"
-}
-
-__all__ = [_ for _ in dir() if _ not in ["_imported", *_imported, *__builtins__]]  # type: ignore
