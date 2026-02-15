@@ -1437,9 +1437,12 @@ class BufferedActuatorRecord(NamedTuple):
 
     :arg ecosystem_uid: the uid of the ecosystem in which the measurement was
                         taken.
-    :arg sensor_uid: the uid of the sensor that took the measurement.
-    :arg measure: the name of the measure taken.
-    :arg value: the value of the sensor's measurement.
+    :arg type: the type of the actuator recorded. Not important any more.
+    :arg group: the name of the actuator group.
+    :arg active: whether the actuator status and mode can be changed or not.
+    :arg mode: the actuator mode, either 'automatic' or 'manual'
+    :arg status: the actuator status, either 'true' (on) or 'false' (off).
+    :arg level: the actuator level, as a percentage of its maximum intensity.
     :arg timestamp: the timestamp of when the measurement was done.
 
     Used by Gaia events and as part of a payload sent between Gaia and Ouranos.
@@ -1455,9 +1458,9 @@ class BufferedActuatorRecord(NamedTuple):
 
 
 class BufferedActuatorsStatePayload(BufferedDataPayload):
-    """Payload to send a list of 'BufferedSensorRecord' from Gaia to Ouranos.
+    """Payload to send a list of 'BufferedActuatorRecord' from Gaia to Ouranos.
 
-    :arg data: a list of 'BufferedSensorRecord' that could not be sent before.
+    :arg data: a list of 'BufferedActuatorRecord' that could not be sent before.
     :arg uuid: the id of the transaction.
     """
     data: list[BufferedActuatorRecord]
