@@ -382,8 +382,7 @@ class TimeWindow(BaseModel):
     def parse_time(cls, value):
         if isinstance(value, str):
             dt = datetime.fromisoformat(value)
-            dt.astimezone(timezone.utc)
-            return dt
+            return dt.astimezone(timezone.utc)
         return value
 
 
