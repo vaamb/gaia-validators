@@ -1526,9 +1526,9 @@ def to_anonymous(config: PlantConfigDict, identifier: str) -> AnonymousPlantConf
 @overload
 def to_anonymous(config: WeatherConfigDict, identifier: str) -> AnonymousWeatherConfigDict: ...
 
-def to_anonymous(config: dict, identifier) -> dict:
+def to_anonymous(config: dict, identifier: str) -> dict:
     config.pop(identifier)
-    return config
+    return {k: v for k, v in config.items() if k != identifier}
 
 
 _imported = {
