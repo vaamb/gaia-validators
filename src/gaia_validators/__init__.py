@@ -1544,14 +1544,4 @@ def to_anonymous(config: PlantConfigDict, identifier: str) -> AnonymousPlantConf
 def to_anonymous(config: WeatherConfigDict, identifier: str) -> AnonymousWeatherConfigDict: ...
 
 def to_anonymous(config: dict, identifier: str) -> dict:
-    config.pop(identifier)
     return {k: v for k, v in config.items() if k != identifier}
-
-
-_imported = {
-    "_BaseModel", "annotations", "Any", "dataclass", "datetime", "EnumType",
-    "Field", "field_validator", "IntFlag", "Literal", "StrEnum", "time",
-    "TypedDict", "UUID", "uuid4"
-}
-
-__all__ = [_ for _ in dir() if _ not in ["_imported", *_imported, *__builtins__]]  # type: ignore
