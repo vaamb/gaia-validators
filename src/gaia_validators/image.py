@@ -203,7 +203,7 @@ class SerializableImage:
         if not self.shape == other.shape:
             raise ValueError("The two arrays must have the same shape")
         return np.mean(
-            (self.array.astype(np.float64) - self.array.astype(np.float64)) ** 2,
+            (self.array.astype(np.float64) - other.array.astype(np.float64)) ** 2,
             dtype=np.float64,
         )  # type: ignore
 
