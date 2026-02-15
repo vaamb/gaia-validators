@@ -49,7 +49,7 @@ class SerializableImage:
         return self.array.size
 
     @property
-    def is_compressed(self) -> int:
+    def is_compressed(self) -> bool:
         return self.format != "raw"
 
     # ---------------------------------------------------------------------------
@@ -130,7 +130,6 @@ class SerializableImage:
 
     encode = serialize
     decode = deserialize
-
 
     @classmethod
     def load_array(cls, path: Path | str, metadata: dict | None = None) -> Self:
