@@ -378,6 +378,7 @@ class TimeWindow(BaseModel):
     end: datetime | None = None
 
     @field_validator("beginning", "end", mode="before")
+    @classmethod
     def parse_time(cls, value):
         if isinstance(value, str):
             dt = datetime.fromisoformat(value)
@@ -411,6 +412,7 @@ class NycthemeralSpanConfig(BaseModel):
     night: time | None = time(20)
 
     @field_validator("day", "night", mode="before")
+    @classmethod
     def parse_day(cls, value: str | time | None):
         if value is None or isinstance(value, time):
             return value
@@ -444,12 +446,14 @@ class NycthemeralCycleConfig(NycthemeralSpanConfig):
     target: str | None = None
 
     @field_validator("span", mode="before")
+    @classmethod
     def parse_span(cls, value):
         if isinstance(value, int):
             return NycthemeralSpanMethod(value)
         return safe_enum_from_name(NycthemeralSpanMethod, value)
 
     @field_validator("lighting", mode="before")
+    @classmethod
     def parse_lighting(cls, value):
         if isinstance(value, int):
             return LightingMethod(value)
@@ -536,10 +540,12 @@ class AnonymousClimateConfig(BaseModel):
     linked_measure: str | None = None
 
     @field_validator("day", "night", "hysteresis", mode="before")
+    @classmethod
     def cast_as_float(cls, value):
         return float(value)
 
     @field_validator("alarm", mode="before")
+    @classmethod
     def cast_as_float_or_none(cls, value):
         if value is None:
             return None
@@ -564,6 +570,7 @@ class ClimateConfig(AnonymousClimateConfig):
     parameter: ClimateParameter
 
     @field_validator("parameter", mode="before")
+    @classmethod
     def parse_parameter(cls, value):
         return safe_enum_from_name(ClimateParameter, value)
 
@@ -619,6 +626,7 @@ class WeatherConfig(AnonymousWeatherConfig):
     parameter: WeatherParameter
 
     @field_validator("parameter", mode="before")
+    @classmethod
     def parse_parameter(cls, value):
         return safe_enum_from_name(WeatherParameter, value)
 
@@ -798,12 +806,14 @@ class AnonymousPlantConfig(BaseModel):
     hardware: list[str] = Field(default_factory=list)
 
     @field_validator("sowing_date", mode="before")
+    @classmethod
     def parse_sowing_date(cls, value: str | datetime | None):
         if isinstance(value, str):
             return datetime.fromisoformat(value)
         return value
 
     @field_validator("hardware", mode="before")
+    @classmethod
     def parse_hardware(cls, value: str | list[str] | None):
         if value is None:
             raise PydanticUseDefault
@@ -1002,6 +1012,7 @@ class ActuatorState(BaseModel):
     mode: ActuatorMode = ActuatorMode.automatic
 
     @field_validator("mode", mode="before")
+    @classmethod
     def parse_mode(cls, value):
         return safe_enum_from_name(ActuatorMode, value)
 
@@ -1314,12 +1325,14 @@ class TurnActuatorPayload(BaseModel):
     countdown: float = Field(default=0.0, ge=0.0)
 
     @field_validator("actuator", mode="before")
+    @classmethod
     def parse_actuator(cls, value):
         if isinstance(value, int):
             return HardwareType(value)
         return safe_enum_from_name(HardwareType, value)
 
     @field_validator("mode", mode="before")
+    @classmethod
     def parse_mode(cls, value):
         return safe_enum_from_name(ActuatorModePayload, value)
 
@@ -1363,6 +1376,7 @@ class CrudPayload(BaseModel):
     data: str | dict = Field(default_factory=dict)
 
     @field_validator("action", mode="before")
+    @classmethod
     def parse_action(cls, value):
         return safe_enum_from_name(CrudAction, value)
 
@@ -1437,9 +1451,12 @@ class BufferedActuatorRecord(NamedTuple):
 
     :arg ecosystem_uid: the uid of the ecosystem in which the measurement was
                         taken.
-    :arg sensor_uid: the uid of the sensor that took the measurement.
-    :arg measure: the name of the measure taken.
-    :arg value: the value of the sensor's measurement.
+    :arg type: the type of the actuator recorded. Not important any more.
+    :arg group: the name of the actuator group.
+    :arg active: whether the actuator status and mode can be changed or not.
+    :arg mode: the actuator mode, either 'automatic' or 'manual'
+    :arg status: the actuator status, either 'true' (on) or 'false' (off).
+    :arg level: the actuator level, as a percentage of its maximum intensity.
     :arg timestamp: the timestamp of when the measurement was done.
 
     Used by Gaia events and as part of a payload sent between Gaia and Ouranos.
@@ -1455,9 +1472,9 @@ class BufferedActuatorRecord(NamedTuple):
 
 
 class BufferedActuatorsStatePayload(BufferedDataPayload):
-    """Payload to send a list of 'BufferedSensorRecord' from Gaia to Ouranos.
+    """Payload to send a list of 'BufferedActuatorRecord' from Gaia to Ouranos.
 
-    :arg data: a list of 'BufferedSensorRecord' that could not be sent before.
+    :arg data: a list of 'BufferedActuatorRecord' that could not be sent before.
     :arg uuid: the id of the transaction.
     """
     data: list[BufferedActuatorRecord]
@@ -1526,6 +1543,5 @@ def to_anonymous(config: PlantConfigDict, identifier: str) -> AnonymousPlantConf
 @overload
 def to_anonymous(config: WeatherConfigDict, identifier: str) -> AnonymousWeatherConfigDict: ...
 
-def to_anonymous(config: dict, identifier) -> dict:
-    config.pop(identifier)
-    return config
+def to_anonymous(config: dict, identifier: str) -> dict:
+    return {k: v for k, v in config.items() if k != identifier}
