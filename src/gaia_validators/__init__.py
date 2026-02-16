@@ -4,6 +4,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from enum import auto, Enum, IntEnum, IntFlag, StrEnum
 from typing import (
     Any,
+    Generic,
     ItemsView,
     Iterable,
     NamedTuple,
@@ -26,6 +27,7 @@ from typing_extensions import Self
 
 
 T = TypeVar("T", bound=Enum)
+DictT = TypeVar("DictT")
 
 
 def safe_enum_from_name(enum: Type[T], name: str | T) -> T:
@@ -60,19 +62,25 @@ def _now() -> datetime:
     return datetime.now(tz=timezone.utc)
 
 
-class LaxBaseModel(_BaseModel):
+class LaxBaseModel(_BaseModel, Generic[DictT]):
     model_config = ConfigDict(
         from_attributes=True,
         populate_by_name=True,
     )
 
+    def model_dump(self, **kwargs) -> DictT:
+        return super().model_dump(**kwargs)  # type: ignore[return-value]
 
-class BaseModel(_BaseModel):
+
+class BaseModel(_BaseModel, Generic[DictT]):
     model_config = ConfigDict(
         extra="forbid",
         from_attributes=True,
         populate_by_name=True,
     )
+
+    def model_dump(self, **kwargs) -> DictT:
+        return super().model_dump(**kwargs)  # type: ignore[return-value]
 
 
 class Empty:
@@ -174,7 +182,15 @@ class Position(Enum):
 
 
 # Config
-class BaseInfoConfig(BaseModel):
+class BaseInfoConfigDict(TypedDict):
+    """Cf. related BaseModel."""
+    engine_uid: str
+    uid: str
+    name: str
+    status: bool
+
+
+class BaseInfoConfig(BaseModel[BaseInfoConfigDict]):
     """Minimum info about a Gaia ecosystem needed for Ouranos to register it.
 
     Used by Gaia and Ouranos.
@@ -183,14 +199,6 @@ class BaseInfoConfig(BaseModel):
     uid: str
     name: str
     status: bool = False
-
-
-class BaseInfoConfigDict(TypedDict):
-    """Cf. related BaseModel."""
-    engine_uid: str
-    uid: str
-    name: str
-    status: bool
 
 
 # Management
@@ -225,7 +233,22 @@ class ManagementFlags(IntFlag):
     pictures_enabled = camera | pictures
 
 
-class ManagementConfig(BaseModel):
+class ManagementConfigDict(TypedDict):
+    """Cf. related BaseModel."""
+    sensors: bool
+    light: bool
+    camera: bool
+    database: bool
+    weather: bool
+
+    alarms: bool
+    climate: bool
+    watering: bool
+    health: bool
+    pictures: bool
+
+
+class ManagementConfig(BaseModel[ManagementConfigDict]):
     """Long form of a Gaia ecosystem subroutine management info.
 
     Used by Gaia in the ecosystems configuration file.
@@ -259,21 +282,6 @@ class ManagementConfig(BaseModel):
             flag = ManagementFlags(flag)
         payload = {management.name: True for management in flag}
         return cls(**payload)  # type: ignore
-
-
-class ManagementConfigDict(TypedDict):
-    """Cf. related BaseModel."""
-    sensors: bool
-    light: bool
-    camera: bool
-    database: bool
-    weather: bool
-
-    alarms: bool
-    climate: bool
-    watering: bool
-    health: bool
-    pictures: bool
 
 
 # Actuator
@@ -350,7 +358,14 @@ LightMethod = LightingMethod
 
 
 # Climate
-class ChaosConfig(BaseModel):
+class ChaosConfigDict(TypedDict):
+    """Cf. related BaseModel."""
+    frequency: int
+    duration: int
+    intensity: float
+
+
+class ChaosConfig(BaseModel[ChaosConfigDict]):
     """Chaos parameters.
 
     :arg frequency: the average delay between two chaotic events. If set to 0,
@@ -366,14 +381,12 @@ class ChaosConfig(BaseModel):
     intensity: float = Field(default=0.0, ge=0.0)
 
 
-class ChaosConfigDict(TypedDict):
-    """Cf. related BaseModel."""
-    frequency: int
-    duration: int
-    intensity: float
+class TimeWindowDict(TypedDict):
+    beginning: datetime | None
+    end: datetime | None
 
 
-class TimeWindow(BaseModel):
+class TimeWindow(BaseModel[TimeWindowDict]):
     beginning: datetime | None = None
     end: datetime | None = None
 
@@ -386,20 +399,21 @@ class TimeWindow(BaseModel):
         return value
 
 
-class TimeWindowDict(TypedDict):
-    beginning: datetime | None
-    end: datetime | None
-
-
-class ChaosParameters(ChaosConfig):
-    time_window: TimeWindow = Field(default_factory=TimeWindow)
-
-
 class ChaosParametersDict(ChaosConfigDict):
     time_window: TimeWindow | TimeWindowDict
 
 
-class NycthemeralSpanConfig(BaseModel):
+class ChaosParameters(ChaosConfig, BaseModel[ChaosParametersDict]):
+    time_window: TimeWindow = Field(default_factory=TimeWindow)
+
+
+class NycthemeralSpanConfigDict(TypedDict):
+    """Cf. related BaseModel."""
+    day: time
+    night: time
+
+
+class NycthemeralSpanConfig(BaseModel[NycthemeralSpanConfigDict]):
     """Info about the day and night times.
 
     Used by Gaia ecosystems configuration file.
@@ -429,13 +443,19 @@ class NycthemeralSpanConfig(BaseModel):
             return time(int(hours), int(minutes))
 
 
-class NycthemeralSpanConfigDict(TypedDict):
+class NycthemeralCycleConfigDict(TypedDict):
     """Cf. related BaseModel."""
-    day: time
-    night: time
+    span: str | NycthemeralSpanMethod
+    lighting: str | LightingMethod
+    target: str | None
+    day:  time | None | str
+    night:  time | None | str
 
 
-class NycthemeralCycleConfig(NycthemeralSpanConfig):
+SkyConfigDict = NycthemeralCycleConfigDict
+
+
+class NycthemeralCycleConfig(NycthemeralSpanConfig, BaseModel[NycthemeralCycleConfigDict]):
     """An augmented version of `DayConfig` with the light method added.
 
     Used by Gaia ecosystems configuration file.
@@ -462,18 +482,6 @@ class NycthemeralCycleConfig(NycthemeralSpanConfig):
 SkyConfig = NycthemeralCycleConfig
 
 
-class NycthemeralCycleConfigDict(TypedDict):
-    """Cf. related BaseModel."""
-    span: str | NycthemeralSpanMethod
-    lighting: str | LightingMethod
-    target: str | None
-    day:  time | None | str
-    night:  time | None | str
-
-
-SkyConfigDict = NycthemeralCycleConfigDict
-
-
 class ClimateParameter(StrEnum):
     """Climate parameters that can be controlled by Gaia ecosystem subroutines.
 
@@ -488,7 +496,12 @@ class ClimateParameter(StrEnum):
     wind = "wind"
 
 
-class ActuatorCouple(BaseModel):
+class ActuatorCoupleDict(TypedDict):
+    increase: str | None
+    decrease: str | None
+
+
+class ActuatorCouple(BaseModel[ActuatorCoupleDict]):
     increase: str | None
     decrease: str | None
 
@@ -518,12 +531,17 @@ class ActuatorCouple(BaseModel):
         return value
 
 
-class ActuatorCoupleDict(TypedDict):
-    increase: str | None
-    decrease: str | None
+class AnonymousClimateConfigDict(TypedDict):
+    """Cf. related BaseModel."""
+    day: float
+    night: float
+    hysteresis: NotRequired[float]
+    alarm: NotRequired[float | None]
+    linked_actuators: NotRequired[ActuatorCoupleDict | None]
+    linked_measure: NotRequired[str | None]
 
 
-class AnonymousClimateConfig(BaseModel):
+class AnonymousClimateConfig(BaseModel[AnonymousClimateConfigDict]):
     """Configuration for controlling one climatic parameter.
 
     Used by Gaia in the ecosystems configuration file.
@@ -551,17 +569,12 @@ class AnonymousClimateConfig(BaseModel):
         return float(value)
 
 
-class AnonymousClimateConfigDict(TypedDict):
+class ClimateConfigDict(AnonymousClimateConfigDict):
     """Cf. related BaseModel."""
-    day: float
-    night: float
-    hysteresis: NotRequired[float]
-    alarm: NotRequired[float | None]
-    linked_actuators: NotRequired[ActuatorCoupleDict | None]
-    linked_measure: NotRequired[str | None]
+    parameter: ClimateParameter
 
 
-class ClimateConfig(AnonymousClimateConfig):
+class ClimateConfig(AnonymousClimateConfig, BaseModel[ClimateConfigDict]):
     """Configuration info for a single climate parameter.
 
     Used by Ouranos.
@@ -572,11 +585,6 @@ class ClimateConfig(AnonymousClimateConfig):
     @classmethod
     def parse_parameter(cls, value):
         return safe_enum_from_name(ClimateParameter, value)
-
-
-class ClimateConfigDict(AnonymousClimateConfigDict):
-    """Cf. related BaseModel."""
-    parameter: ClimateParameter
 
 
 class WeatherParameter(StrEnum):
@@ -593,7 +601,15 @@ class WeatherParameter(StrEnum):
     wind_gust = "wind_gust"
 
 
-class AnonymousWeatherConfig(BaseModel):
+class AnonymousWeatherConfigDict(TypedDict):
+    """Cf. related BaseModel."""
+    pattern: str
+    duration: float
+    level: NotRequired[float]
+    linked_actuator: NotRequired[str | None]
+
+
+class AnonymousWeatherConfig(BaseModel[AnonymousWeatherConfigDict]):
     """Configuration for controlling one weather parameter.
 
     Used by Gaia in the ecosystems configuration file.
@@ -609,15 +625,12 @@ class AnonymousWeatherConfig(BaseModel):
     linked_actuator: str | None = None
 
 
-class AnonymousWeatherConfigDict(TypedDict):
+class WeatherConfigDict(AnonymousWeatherConfigDict):
     """Cf. related BaseModel."""
-    pattern: str
-    duration: float
-    level: NotRequired[float]
-    linked_actuator: NotRequired[str | None]
+    parameter: WeatherParameter
 
 
-class WeatherConfig(AnonymousWeatherConfig):
+class WeatherConfig(AnonymousWeatherConfig, BaseModel[WeatherConfigDict]):
     """Configuration info for a single weather parameter.
 
     Used by Ouranos.
@@ -628,11 +641,6 @@ class WeatherConfig(AnonymousWeatherConfig):
     @classmethod
     def parse_parameter(cls, value):
         return safe_enum_from_name(WeatherParameter, value)
-
-
-class WeatherConfigDict(AnonymousWeatherConfigDict):
-    """Cf. related BaseModel."""
-    parameter: WeatherParameter
 
 
 # Hardware
@@ -659,7 +667,12 @@ class HardwareType(IntFlag):
     climate_actuator = temperature_actuator | humidity_actuator
 
 
-class Measure(BaseModel):
+class MeasureDict(TypedDict):
+    name: str
+    unit: str | None
+
+
+class Measure(BaseModel[MeasureDict]):
     name: str
     unit: str | None = None
 
@@ -670,12 +683,21 @@ class SerializableMeasure(Measure):
         return f"{self.name}|{self.unit if self.unit is not None else ''}"
 
 
-class MeasureDict(TypedDict):
-    name: str
-    unit: str | None
+class AnonymousHardwareConfigDict(TypedDict):
+    """Cf. related BaseModel."""
+    name: str | MissingValue
+    active: NotRequired[bool | MissingValue]
+    address: str | MissingValue
+    type: HardwareType | MissingValue
+    level: HardwareLevel | MissingValue
+    groups: NotRequired[list[str] | MissingValue]
+    model: str | MissingValue
+    measures: NotRequired[list[MeasureDict] | MissingValue]
+    plants: NotRequired[list[str] | MissingValue]
+    multiplexer_model: NotRequired[str | None | MissingValue]
 
 
-class AnonymousHardwareConfig(BaseModel):
+class AnonymousHardwareConfig(BaseModel[AnonymousHardwareConfigDict]):
     """Configuration info for a single unidentified piece of hardware.
 
     Used by Gaia in the ecosystems configuration file.
@@ -770,21 +792,12 @@ class AnonymousHardwareConfig(BaseModel):
         return serialized
 
 
-class AnonymousHardwareConfigDict(TypedDict):
+class HardwareConfigDict(AnonymousHardwareConfigDict):
     """Cf. related BaseModel."""
-    name: str | MissingValue
-    active: NotRequired[bool | MissingValue]
-    address: str | MissingValue
-    type: HardwareType | MissingValue
-    level: HardwareLevel | MissingValue
-    groups: NotRequired[list[str] | MissingValue]
-    model: str | MissingValue
-    measures: NotRequired[list[MeasureDict] | MissingValue]
-    plants: NotRequired[list[str] | MissingValue]
-    multiplexer_model: NotRequired[str | None | MissingValue]
+    uid: str | MissingValue
 
 
-class HardwareConfig(AnonymousHardwareConfig):
+class HardwareConfig(AnonymousHardwareConfig, BaseModel[HardwareConfigDict]):
     """Configuration info for a single piece of hardware.
 
     Used by Ouranos.
@@ -792,13 +805,15 @@ class HardwareConfig(AnonymousHardwareConfig):
     uid: str
 
 
-class HardwareConfigDict(AnonymousHardwareConfigDict):
-    """Cf. related BaseModel."""
-    uid: str | MissingValue
-
-
 # Plants
-class AnonymousPlantConfig(BaseModel):
+class AnonymousPlantConfigDict(TypedDict):
+    name: str | MissingValue
+    species: NotRequired[str | None | MissingValue]
+    sowing_date: NotRequired[datetime | None | MissingValue]
+    hardware: NotRequired[list[str] | MissingValue]
+
+
+class AnonymousPlantConfig(BaseModel[AnonymousPlantConfigDict]):
     name: str
     species: str | None = None
     sowing_date: datetime | None = None
@@ -821,19 +836,12 @@ class AnonymousPlantConfig(BaseModel):
         return value
 
 
-class AnonymousPlantConfigDict(TypedDict):
-    name: str | MissingValue
-    species: NotRequired[str | None | MissingValue]
-    sowing_date: NotRequired[datetime | None | MissingValue]
-    hardware: NotRequired[list[str] | MissingValue]
-
-
-class PlantConfig(AnonymousPlantConfig):
-    uid: str
-
-
 class PlantConfigDict(AnonymousPlantConfigDict):
     uid: str | MissingValue
+
+
+class PlantConfig(AnonymousPlantConfig, BaseModel[PlantConfigDict]):
+    uid: str
 
 
 # Data, records and warnings
@@ -885,7 +893,15 @@ class SensorAlarm(NamedTuple):
     level: WarningLevel
 
 
-class SensorsData(BaseModel):
+class SensorsDataDict(TypedDict):
+    """Cf. related BaseModel."""
+    timestamp: datetime | str
+    records: list[SensorRecord]
+    average: list[MeasureAverage]
+    alarms: list[SensorAlarm]
+
+
+class SensorsData(BaseModel[SensorsDataDict]):
     """A collection of all the sensor measurements for one ecosystem at one time
     point.
 
@@ -899,18 +915,16 @@ class SensorsData(BaseModel):
     alarms: list[SensorAlarm] = Field(default_factory=list)
 
 
-class SensorsDataDict(TypedDict):
-    """Cf. related BaseModel."""
-    timestamp: datetime | str
-    records: list[SensorRecord]
-    average: list[MeasureAverage]
-    alarms: list[SensorAlarm]
-
-
 HealthRecord = SensorRecord
 
 
-class HealthData(BaseModel):
+class HealthDataDict(TypedDict):
+    """Cf. related BaseModel."""
+    timestamp: datetime | str
+    records: list[HealthRecord]
+
+
+class HealthData(BaseModel[HealthDataDict]):
     """A collection of all the health measurements for one ecosystem at one time
     point.
 
@@ -922,13 +936,15 @@ class HealthData(BaseModel):
     records: list[HealthRecord] = Field(default_factory=list)
 
 
-class HealthDataDict(TypedDict):
+class LightingHoursDict(TypedDict):
     """Cf. related BaseModel."""
-    timestamp: datetime | str
-    records: list[HealthRecord]
+    morning_start: time | str
+    morning_end: time | None | str
+    evening_start: time | None | str
+    evening_end: time | str
 
 
-class LightingHours(BaseModel):
+class LightingHours(BaseModel[LightingHoursDict]):
     """Information about the lighting hours.
 
     :arg morning_start: time at which the lighting starts in the morning.
@@ -952,15 +968,12 @@ class LightingHours(BaseModel):
     evening_end: time = time(20)
 
 
-class LightingHoursDict(TypedDict):
+class LightDataDict(LightingHoursDict):
     """Cf. related BaseModel."""
-    morning_start: time | str
-    morning_end: time | None | str
-    evening_start: time | None | str
-    evening_end: time | str
+    method: LightMethod
 
 
-class LightData(LightingHours):
+class LightData(LightingHours, BaseModel[LightDataDict]):
     """An augmented version of `LightingHours` with the light method added.
 
     Used by Gaia.
@@ -982,12 +995,11 @@ class LightData(LightingHours):
         )
 
 
-class LightDataDict(LightingHoursDict):
+class NycthemeralCycleInfoDict(NycthemeralCycleConfigDict, LightingHoursDict):
     """Cf. related BaseModel."""
-    method: LightMethod
 
 
-class NycthemeralCycleInfo(LightingHours, NycthemeralCycleConfig):
+class NycthemeralCycleInfo(LightingHours, NycthemeralCycleConfig, BaseModel[NycthemeralCycleInfoDict]):
     """An augmented version of `NycthemeralCycleConfig` with the `LightingHours`
     added.
 
@@ -995,12 +1007,16 @@ class NycthemeralCycleInfo(LightingHours, NycthemeralCycleConfig):
     """
 
 
-class NycthemeralCycleInfoDict(NycthemeralCycleConfigDict, LightingHoursDict):
-    """Cf. related BaseModel."""
-
-
 # Actuators data
-class ActuatorState(BaseModel):
+class ActuatorStateDict(TypedDict):
+    """Cf. related BaseModel."""
+    active: bool
+    status: bool
+    level: float | None
+    mode: ActuatorMode
+
+
+class ActuatorState(BaseModel[ActuatorStateDict]):
     """The state of one (type of) actuator.
 
     Used by Gaia and Ouranos api.
@@ -1014,14 +1030,6 @@ class ActuatorState(BaseModel):
     @classmethod
     def parse_mode(cls, value):
         return safe_enum_from_name(ActuatorMode, value)
-
-
-class ActuatorStateDict(TypedDict):
-    """Cf. related BaseModel."""
-    active: bool
-    status: bool
-    level: float | None
-    mode: ActuatorMode
 
 
 class ActuatorStateRecord(NamedTuple):
@@ -1050,18 +1058,32 @@ class Coordinates(NamedTuple):
     longitude: float
 
 
-class Place(BaseModel):
-    name: str
-    coordinates: Coordinates
-
-
 class PlaceDict(TypedDict):
     name: str
     coordinates: Coordinates
 
 
+class Place(BaseModel[PlaceDict]):
+    name: str
+    coordinates: Coordinates
+
+
 # Sun times
-class SunTimes(LaxBaseModel):
+class SunTimesDict(TypedDict):
+    """Cf. related BaseModel."""
+    datestamp: date | None
+    astronomical_dawn: time | None
+    nautical_dawn: time | None
+    civil_dawn: time | None
+    sunrise: time | None
+    solar_noon: time | None
+    sunset: time | None
+    civil_dusk: time | None
+    nautical_dusk: time | None
+    astronomical_dusk: time | None
+
+
+class SunTimes(LaxBaseModel[SunTimesDict]):
     """Information about sunrise and sunset events for a given place.
 
     Used by Gaia and Ouranos.
@@ -1087,22 +1109,14 @@ class SunTimes(LaxBaseModel):
         return timedelta(0)
 
 
-class SunTimesDict(TypedDict):
-    """Cf. related BaseModel."""
-    datestamp: date | None
-    astronomical_dawn: time | None
-    nautical_dawn: time | None
-    civil_dawn: time | None
-    sunrise: time | None
-    solar_noon: time | None
-    sunset: time | None
-    civil_dusk: time | None
-    nautical_dusk: time | None
-    astronomical_dusk: time | None
-
-
 # Broker payloads
-class EnginePayload(BaseModel):
+class EnginePayloadDict(TypedDict):
+    """Cf. related BaseModel."""
+    engine_uid: str
+    address: str
+
+
+class EnginePayload(BaseModel[EnginePayloadDict]):
     """Minimal info about a Gaia engine needed for Ouranos to register it.
 
     Used as a payload sent between Gaia and Ouranos.
@@ -1111,26 +1125,14 @@ class EnginePayload(BaseModel):
     address: str
 
 
-class EnginePayloadDict(TypedDict):
-    """Cf. related BaseModel."""
-    engine_uid: str
-    address: str
-
-
-class EcosystemPingData(BaseModel):
-    uid: str
-    status: bool
-
-
 class EcosystemPingDataDict(TypedDict):
     uid: str
     status: bool
 
 
-class EnginePingPayload(BaseModel):
-    engine_uid: str
-    timestamp: datetime
-    ecosystems: list[EcosystemPingData]
+class EcosystemPingData(BaseModel[EcosystemPingDataDict]):
+    uid: str
+    status: bool
 
 
 class EnginePingPayloadDict(TypedDict):
@@ -1139,7 +1141,18 @@ class EnginePingPayloadDict(TypedDict):
     ecosystems: list[EcosystemPingDataDict]
 
 
-class EcosystemPayload(BaseModel):
+class EnginePingPayload(BaseModel[EnginePingPayloadDict]):
+    engine_uid: str
+    timestamp: datetime
+    ecosystems: list[EcosystemPingData]
+
+
+class EcosystemPayloadDict(TypedDict):
+    """Cf. related BaseModel."""
+    uid: str
+
+
+class EcosystemPayload(BaseModel[EcosystemPayloadDict]):
     """Base payload for sharing data between Gaia and Ouranos.
 
     Payloads consist of the uid of the ecosystem and data.
@@ -1155,35 +1168,25 @@ class EcosystemPayload(BaseModel):
         )
 
 
-class EcosystemPayloadDict(TypedDict):
-    """Cf. related BaseModel."""
-    uid: str
-
-
-class PlacesPayload(EcosystemPayload):
-    """Payload to send 'Place' from Gaia to Ouranos."""
-    data: list[Place]
-
-
 class PlacesPayloadDict(EcosystemPayloadDict):
     """Payload to send 'Place' from Gaia to Ouranos."""
     data: list[Place]
 
 
+class PlacesPayload(EcosystemPayload, BaseModel[PlacesPayloadDict]):
+    """Payload to send 'Place' from Gaia to Ouranos."""
+    data: list[Place]
+
+
 # Config Payload
-class BaseInfoConfigPayload(EcosystemPayload):
-    """Payload to send 'BaseInfoConfig' from Gaia to Ouranos."""
-    data: BaseInfoConfig
-
-
 class BaseInfoConfigPayloadDict(EcosystemPayloadDict):
     """Cf. related BaseModel."""
     data: BaseInfoConfigDict
 
 
-class ManagementConfigPayload(EcosystemPayload):
-    """Payload to send 'ManagementConfig' from Gaia to Ouranos."""
-    data: ManagementConfig
+class BaseInfoConfigPayload(EcosystemPayload, BaseModel[BaseInfoConfigPayloadDict]):
+    """Payload to send 'BaseInfoConfig' from Gaia to Ouranos."""
+    data: BaseInfoConfig
 
 
 class ManagementConfigPayloadDict(EcosystemPayloadDict):
@@ -1191,9 +1194,9 @@ class ManagementConfigPayloadDict(EcosystemPayloadDict):
     data: ManagementConfigDict
 
 
-class ChaosParametersPayload(EcosystemPayload):
-    """Payload to send 'ChaosParameters' from Gaia to Ouranos."""
-    data: ChaosParameters
+class ManagementConfigPayload(EcosystemPayload, BaseModel[ManagementConfigPayloadDict]):
+    """Payload to send 'ManagementConfig' from Gaia to Ouranos."""
+    data: ManagementConfig
 
 
 class ChaosParametersPayloadDict(EcosystemPayloadDict):
@@ -1201,9 +1204,9 @@ class ChaosParametersPayloadDict(EcosystemPayloadDict):
     data: ChaosParametersDict
 
 
-class NycthemeralCycleConfigPayload(EcosystemPayload):
-    """Payload to send 'NycthemeralCycleConfig' from Gaia to Ouranos."""
-    data: NycthemeralCycleConfig
+class ChaosParametersPayload(EcosystemPayload, BaseModel[ChaosParametersPayloadDict]):
+    """Payload to send 'ChaosParameters' from Gaia to Ouranos."""
+    data: ChaosParameters
 
 
 class NycthemeralCycleConfigPayloadDict(EcosystemPayloadDict):
@@ -1211,9 +1214,9 @@ class NycthemeralCycleConfigPayloadDict(EcosystemPayloadDict):
     data: NycthemeralCycleConfigDict
 
 
-class ClimateConfigPayload(EcosystemPayload):
-    """Payload to send a list of 'ClimateConfig' from Gaia to Ouranos."""
-    data: list[ClimateConfig] = Field(default_factory=list)
+class NycthemeralCycleConfigPayload(EcosystemPayload, BaseModel[NycthemeralCycleConfigPayloadDict]):
+    """Payload to send 'NycthemeralCycleConfig' from Gaia to Ouranos."""
+    data: NycthemeralCycleConfig
 
 
 class ClimateConfigPayloadDict(EcosystemPayloadDict):
@@ -1221,9 +1224,9 @@ class ClimateConfigPayloadDict(EcosystemPayloadDict):
     data: list[ClimateConfigDict]
 
 
-class WeatherConfigPayload(EcosystemPayload):
-    """Payload to send a list of 'WeatherConfig' from Gaia to Ouranos."""
-    data: list[WeatherConfig] = Field(default_factory=list)
+class ClimateConfigPayload(EcosystemPayload, BaseModel[ClimateConfigPayloadDict]):
+    """Payload to send a list of 'ClimateConfig' from Gaia to Ouranos."""
+    data: list[ClimateConfig] = Field(default_factory=list)
 
 
 class WeatherConfigPayloadDict(EcosystemPayloadDict):
@@ -1231,9 +1234,9 @@ class WeatherConfigPayloadDict(EcosystemPayloadDict):
     data: list[WeatherConfigDict]
 
 
-class HardwareConfigPayload(EcosystemPayload):
-    """Payload to send a list of 'HardwareConfig' from Gaia to Ouranos."""
-    data: list[HardwareConfig] = Field(default_factory=list)
+class WeatherConfigPayload(EcosystemPayload, BaseModel[WeatherConfigPayloadDict]):
+    """Payload to send a list of 'WeatherConfig' from Gaia to Ouranos."""
+    data: list[WeatherConfig] = Field(default_factory=list)
 
 
 class HardwareConfigPayloadDict(EcosystemPayloadDict):
@@ -1241,9 +1244,9 @@ class HardwareConfigPayloadDict(EcosystemPayloadDict):
     data: list[HardwareConfigDict]
 
 
-class PlantConfigPayload(EcosystemPayload):
-    """Payload to send a list of 'PlantConfig' from Gaia to Ouranos."""
-    data: list[PlantConfig] = Field(default_factory=list)
+class HardwareConfigPayload(EcosystemPayload, BaseModel[HardwareConfigPayloadDict]):
+    """Payload to send a list of 'HardwareConfig' from Gaia to Ouranos."""
+    data: list[HardwareConfig] = Field(default_factory=list)
 
 
 class PlantConfigPayloadDict(EcosystemPayloadDict):
@@ -1251,20 +1254,20 @@ class PlantConfigPayloadDict(EcosystemPayloadDict):
     data: list[PlantConfigDict]
 
 
+class PlantConfigPayload(EcosystemPayload, BaseModel[PlantConfigPayloadDict]):
+    """Payload to send a list of 'PlantConfig' from Gaia to Ouranos."""
+    data: list[PlantConfig] = Field(default_factory=list)
+
+
 # Data payloads
-class SensorsDataPayload(EcosystemPayload):
-    """Payload to send 'SensorsData' from Gaia to Ouranos."""
-    data: SensorsData
-
-
 class SensorsDataPayloadDict(EcosystemPayloadDict):
     """Cf. related BaseModel."""
     data: SensorsDataDict
 
 
-class NycthemeralCycleInfoPayload(EcosystemPayload):
-    """Payload to send 'LightData' from Gaia to Ouranos."""
-    data: NycthemeralCycleInfo
+class SensorsDataPayload(EcosystemPayload, BaseModel[SensorsDataPayloadDict]):
+    """Payload to send 'SensorsData' from Gaia to Ouranos."""
+    data: SensorsData
 
 
 class NycthemeralCycleInfoPayloadDict(EcosystemPayloadDict):
@@ -1272,9 +1275,9 @@ class NycthemeralCycleInfoPayloadDict(EcosystemPayloadDict):
     data: NycthemeralCycleInfoDict
 
 
-class LightDataPayload(EcosystemPayload):
+class NycthemeralCycleInfoPayload(EcosystemPayload, BaseModel[NycthemeralCycleInfoPayloadDict]):
     """Payload to send 'LightData' from Gaia to Ouranos."""
-    data: LightData
+    data: NycthemeralCycleInfo
 
 
 class LightDataPayloadDict(EcosystemPayloadDict):
@@ -1282,9 +1285,9 @@ class LightDataPayloadDict(EcosystemPayloadDict):
     data: LightDataDict
 
 
-class ActuatorsDataPayload(EcosystemPayload):
-    """Payload to send 'ActuatorsState' from Gaia to Ouranos."""
-    data: list[ActuatorStateRecord] = Field(default_factory=list)
+class LightDataPayload(EcosystemPayload, BaseModel[LightDataPayloadDict]):
+    """Payload to send 'LightData' from Gaia to Ouranos."""
+    data: LightData
 
 
 class ActuatorsDataPayloadDict(EcosystemPayloadDict):
@@ -1292,9 +1295,9 @@ class ActuatorsDataPayloadDict(EcosystemPayloadDict):
     data: list[ActuatorStateRecord]
 
 
-class HealthDataPayload(EcosystemPayload):
-    """Payload to send 'HealthRecord' from Gaia to Ouranos."""
-    data: HealthData
+class ActuatorsDataPayload(EcosystemPayload, BaseModel[ActuatorsDataPayloadDict]):
+    """Payload to send 'ActuatorsState' from Gaia to Ouranos."""
+    data: list[ActuatorStateRecord] = Field(default_factory=list)
 
 
 class HealthDataPayloadDict(EcosystemPayloadDict):
@@ -1302,8 +1305,23 @@ class HealthDataPayloadDict(EcosystemPayloadDict):
     data: HealthDataDict
 
 
+class HealthDataPayload(EcosystemPayload, BaseModel[HealthDataPayloadDict]):
+    """Payload to send 'HealthRecord' from Gaia to Ouranos."""
+    data: HealthData
+
+
 # Actuators payload
-class TurnActuatorPayload(BaseModel):
+class TurnActuatorPayloadDict(TypedDict):
+    """Cf. related BaseModel."""
+    ecosystem_uid: str | None
+    actuator: HardwareType
+    group: NotRequired[str]
+    mode: ActuatorModePayload
+    level: NotRequired[float]
+    countdown: NotRequired[float]
+
+
+class TurnActuatorPayload(BaseModel[TurnActuatorPayloadDict]):
     """Payload from Ouranos to Gaia to request a change in mode for a type of
     actuator in the given ecosystem.
 
@@ -1336,30 +1354,29 @@ class TurnActuatorPayload(BaseModel):
         return safe_enum_from_name(ActuatorModePayload, value)
 
 
-class TurnActuatorPayloadDict(TypedDict):
-    """Cf. related BaseModel."""
-    ecosystem_uid: str | None
-    actuator: HardwareType
-    group: NotRequired[str]
-    mode: ActuatorModePayload
-    level: NotRequired[float]
-    countdown: NotRequired[float]
-
-
-class Route(BaseModel):
-    """Information about on which engine an ecosystem is found."""
-    engine_uid: str
-    ecosystem_uid: str | None = None
-
-
 class RouteDict(TypedDict):
     """Cf. related BaseModel."""
     engine_uid: str
     ecosystem_uid: str | None
 
 
+class Route(BaseModel[RouteDict]):
+    """Information about on which engine an ecosystem is found."""
+    engine_uid: str
+    ecosystem_uid: str | None = None
+
+
 # Crud payload
-class CrudPayload(BaseModel):
+class CrudPayloadDict(TypedDict):
+    """Cf. related BaseModel."""
+    uuid: str
+    routing: RouteDict
+    action: CrudAction
+    target: str
+    data: str | dict
+
+
+class CrudPayload(BaseModel[CrudPayloadDict]):
     """Payload from Ouranos to Gaia to request a change in an ecosystem config.
 
     :arg uuid: an uuid for the CRUD request.
@@ -1380,26 +1397,7 @@ class CrudPayload(BaseModel):
         return safe_enum_from_name(CrudAction, value)
 
 
-class CrudPayloadDict(TypedDict):
-    """Cf. related BaseModel."""
-    uuid: str
-    routing: RouteDict
-    action: CrudAction
-    target: str
-    data: str | dict
-
-
 # Buffered data payloads
-class BufferedDataPayload(BaseModel):
-    """Payload to send a list of buffered data from Gaia to Ouranos.
-
-    :arg data: a list of data (DB rows) that could not be sent before.
-    :arg uuid: the id of the transaction.
-    """
-    data: list[BufferedSensorRecord] | list[BufferedActuatorRecord]
-    uuid: UUID
-
-
 class BufferedDataPayloadDict(TypedDict):
     """Cf. related BaseModel."""
     uuid: UUID
@@ -1422,27 +1420,6 @@ class BufferedSensorRecord(NamedTuple):
     measure: str
     value: float
     timestamp: datetime
-
-
-class BufferedSensorsDataPayload(BufferedDataPayload):
-    """Payload to send a list of 'BufferedSensorRecord' from Gaia to Ouranos.
-
-    :arg data: a list of 'BufferedSensorRecord' that could not be sent before.
-    :arg uuid: the id of the transaction.
-    """
-    data: list[BufferedSensorRecord]
-    uuid: UUID
-
-
-class BufferedSensorsDataPayloadDict(BufferedDataPayloadDict):
-    """Cf. related BaseModel."""
-    data: list[BufferedSensorRecord]
-
-
-BufferedHealthRecordPayload = BufferedSensorsDataPayload
-
-
-BufferedHealthRecordPayloadDict = BufferedSensorsDataPayloadDict
 
 
 class BufferedActuatorRecord(NamedTuple):
@@ -1470,7 +1447,43 @@ class BufferedActuatorRecord(NamedTuple):
     timestamp: datetime | None
 
 
-class BufferedActuatorsStatePayload(BufferedDataPayload):
+class BufferedDataPayload(BaseModel[BufferedDataPayloadDict]):
+    """Payload to send a list of buffered data from Gaia to Ouranos.
+
+    :arg data: a list of data (DB rows) that could not be sent before.
+    :arg uuid: the id of the transaction.
+    """
+    data: list[BufferedSensorRecord] | list[BufferedActuatorRecord]
+    uuid: UUID
+
+
+class BufferedSensorsDataPayloadDict(BufferedDataPayloadDict):
+    """Cf. related BaseModel."""
+    data: list[BufferedSensorRecord]
+
+
+class BufferedSensorsDataPayload(BufferedDataPayload, BaseModel[BufferedSensorsDataPayloadDict]):
+    """Payload to send a list of 'BufferedSensorRecord' from Gaia to Ouranos.
+
+    :arg data: a list of 'BufferedSensorRecord' that could not be sent before.
+    :arg uuid: the id of the transaction.
+    """
+    data: list[BufferedSensorRecord]
+    uuid: UUID
+
+
+BufferedHealthRecordPayload = BufferedSensorsDataPayload
+
+
+BufferedHealthRecordPayloadDict = BufferedSensorsDataPayloadDict
+
+
+class BufferedActuatorsStatePayloadDict(BufferedDataPayloadDict):
+    """Cf. related BaseModel."""
+    data: list[BufferedActuatorRecord]
+
+
+class BufferedActuatorsStatePayload(BufferedDataPayload, BaseModel[BufferedActuatorsStatePayloadDict]):
     """Payload to send a list of 'BufferedActuatorRecord' from Gaia to Ouranos.
 
     :arg data: a list of 'BufferedActuatorRecord' that could not be sent before.
@@ -1480,11 +1493,6 @@ class BufferedActuatorsStatePayload(BufferedDataPayload):
     uuid: UUID
 
 
-class BufferedActuatorsStatePayloadDict(BufferedDataPayloadDict):
-    """Cf. related BaseModel."""
-    data: list[BufferedActuatorRecord]
-
-
 # Request (CRUD & buffered data saving) results
 class Result(StrEnum):
     """The status of a request."""
@@ -1492,7 +1500,14 @@ class Result(StrEnum):
     failure = "failure"
 
 
-class RequestResult(BaseModel):
+class RequestResultDict(TypedDict):
+    """Cf. related BaseModel."""
+    uuid: str
+    status: Result
+    message: str | None
+
+
+class RequestResult(BaseModel[RequestResultDict]):
     """The result of a CRUD request or after sending buffered sensors data.
 
     :arg uuid: the id of the request treated.
@@ -1505,13 +1520,6 @@ class RequestResult(BaseModel):
     uuid: UUID
     status: Result
     message: str | None = None
-
-
-class RequestResultDict(TypedDict):
-    """Cf. related BaseModel."""
-    uuid: str
-    status: Result
-    message: str | None
 
 
 @overload
