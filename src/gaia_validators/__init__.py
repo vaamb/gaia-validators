@@ -421,8 +421,8 @@ class NycthemeralSpanConfig(BaseModel[NycthemeralSpanConfigDict]):
     Rem: if the environment light method used is `LightMethod.elongate` or
     `LightMethod.mimic`, the times given will be overriden.
     """
-    day: time | None = time(8)
-    night: time | None = time(20)
+    day: time = time(8)
+    night: time = time(20)
 
     @field_validator("day", "night", mode="before")
     @classmethod
