@@ -421,8 +421,8 @@ class NycthemeralSpanConfig(BaseModel[NycthemeralSpanConfigDict]):
     Rem: if the environment light method used is `LightMethod.elongate` or
     `LightMethod.mimic`, the times given will be overriden.
     """
-    day: time | None = time(8)
-    night: time | None = time(20)
+    day: time = time(8)
+    night: time = time(20)
 
     @field_validator("day", "night", mode="before")
     @classmethod
@@ -685,16 +685,16 @@ class SerializableMeasure(Measure):
 
 class AnonymousHardwareConfigDict(TypedDict):
     """Cf. related BaseModel."""
-    name: str | MissingValue
-    active: NotRequired[bool | MissingValue]
-    address: str | MissingValue
-    type: HardwareType | MissingValue
-    level: HardwareLevel | MissingValue
-    groups: NotRequired[list[str] | MissingValue]
-    model: str | MissingValue
-    measures: NotRequired[list[MeasureDict] | MissingValue]
-    plants: NotRequired[list[str] | MissingValue]
-    multiplexer_model: NotRequired[str | None | MissingValue]
+    name: str
+    active: NotRequired[bool]
+    address: str
+    type: HardwareType
+    level: HardwareLevel
+    groups: NotRequired[list[str]]
+    model: str
+    measures: NotRequired[list[MeasureDict]]
+    plants: NotRequired[list[str]]
+    multiplexer_model: NotRequired[str | None]
 
 
 class AnonymousHardwareConfig(BaseModel[AnonymousHardwareConfigDict]):
@@ -794,7 +794,7 @@ class AnonymousHardwareConfig(BaseModel[AnonymousHardwareConfigDict]):
 
 class HardwareConfigDict(AnonymousHardwareConfigDict):
     """Cf. related BaseModel."""
-    uid: str | MissingValue
+    uid: str
 
 
 class HardwareConfig(BaseModel[HardwareConfigDict], AnonymousHardwareConfig):
@@ -807,10 +807,10 @@ class HardwareConfig(BaseModel[HardwareConfigDict], AnonymousHardwareConfig):
 
 # Plants
 class AnonymousPlantConfigDict(TypedDict):
-    name: str | MissingValue
-    species: NotRequired[str | None | MissingValue]
-    sowing_date: NotRequired[datetime | None | MissingValue]
-    hardware: NotRequired[list[str] | MissingValue]
+    name: str
+    species: NotRequired[str | None]
+    sowing_date: NotRequired[datetime | None]
+    hardware: NotRequired[list[str]]
 
 
 class AnonymousPlantConfig(BaseModel[AnonymousPlantConfigDict]):
@@ -837,7 +837,7 @@ class AnonymousPlantConfig(BaseModel[AnonymousPlantConfigDict]):
 
 
 class PlantConfigDict(AnonymousPlantConfigDict):
-    uid: str | MissingValue
+    uid: str
 
 
 class PlantConfig(BaseModel[PlantConfigDict], AnonymousPlantConfig):
