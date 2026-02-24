@@ -403,7 +403,7 @@ class ChaosParametersDict(ChaosConfigDict):
     time_window: TimeWindow | TimeWindowDict
 
 
-class ChaosParameters(ChaosConfig, BaseModel[ChaosParametersDict]):
+class ChaosParameters(BaseModel[ChaosParametersDict], ChaosConfig):
     time_window: TimeWindow = Field(default_factory=TimeWindow)
 
 
@@ -455,7 +455,7 @@ class NycthemeralCycleConfigDict(TypedDict):
 SkyConfigDict = NycthemeralCycleConfigDict
 
 
-class NycthemeralCycleConfig(NycthemeralSpanConfig, BaseModel[NycthemeralCycleConfigDict]):
+class NycthemeralCycleConfig(BaseModel[NycthemeralCycleConfigDict], NycthemeralSpanConfig):
     """An augmented version of `DayConfig` with the light method added.
 
     Used by Gaia ecosystems configuration file.
@@ -574,7 +574,7 @@ class ClimateConfigDict(AnonymousClimateConfigDict):
     parameter: ClimateParameter
 
 
-class ClimateConfig(AnonymousClimateConfig, BaseModel[ClimateConfigDict]):
+class ClimateConfig(BaseModel[ClimateConfigDict], AnonymousClimateConfig):
     """Configuration info for a single climate parameter.
 
     Used by Ouranos.
@@ -630,7 +630,7 @@ class WeatherConfigDict(AnonymousWeatherConfigDict):
     parameter: WeatherParameter
 
 
-class WeatherConfig(AnonymousWeatherConfig, BaseModel[WeatherConfigDict]):
+class WeatherConfig(BaseModel[WeatherConfigDict], AnonymousWeatherConfig):
     """Configuration info for a single weather parameter.
 
     Used by Ouranos.
@@ -797,7 +797,7 @@ class HardwareConfigDict(AnonymousHardwareConfigDict):
     uid: str | MissingValue
 
 
-class HardwareConfig(AnonymousHardwareConfig, BaseModel[HardwareConfigDict]):
+class HardwareConfig(BaseModel[HardwareConfigDict], AnonymousHardwareConfig):
     """Configuration info for a single piece of hardware.
 
     Used by Ouranos.
@@ -840,7 +840,7 @@ class PlantConfigDict(AnonymousPlantConfigDict):
     uid: str | MissingValue
 
 
-class PlantConfig(AnonymousPlantConfig, BaseModel[PlantConfigDict]):
+class PlantConfig(BaseModel[PlantConfigDict], AnonymousPlantConfig):
     uid: str
 
 
@@ -973,7 +973,7 @@ class LightDataDict(LightingHoursDict):
     method: LightMethod
 
 
-class LightData(LightingHours, BaseModel[LightDataDict]):
+class LightData(BaseModel[LightDataDict], LightingHours):
     """An augmented version of `LightingHours` with the light method added.
 
     Used by Gaia.
@@ -999,7 +999,7 @@ class NycthemeralCycleInfoDict(NycthemeralCycleConfigDict, LightingHoursDict):
     """Cf. related BaseModel."""
 
 
-class NycthemeralCycleInfo(LightingHours, NycthemeralCycleConfig, BaseModel[NycthemeralCycleInfoDict]):
+class NycthemeralCycleInfo(BaseModel[NycthemeralCycleInfoDict], LightingHours, NycthemeralCycleConfig):
     """An augmented version of `NycthemeralCycleConfig` with the `LightingHours`
     added.
 
@@ -1173,7 +1173,7 @@ class PlacesPayloadDict(EcosystemPayloadDict):
     data: list[Place]
 
 
-class PlacesPayload(EcosystemPayload, BaseModel[PlacesPayloadDict]):
+class PlacesPayload(BaseModel[PlacesPayloadDict], EcosystemPayload):
     """Payload to send 'Place' from Gaia to Ouranos."""
     data: list[Place]
 
@@ -1184,7 +1184,7 @@ class BaseInfoConfigPayloadDict(EcosystemPayloadDict):
     data: BaseInfoConfigDict
 
 
-class BaseInfoConfigPayload(EcosystemPayload, BaseModel[BaseInfoConfigPayloadDict]):
+class BaseInfoConfigPayload(BaseModel[BaseInfoConfigPayloadDict], EcosystemPayload):
     """Payload to send 'BaseInfoConfig' from Gaia to Ouranos."""
     data: BaseInfoConfig
 
@@ -1194,7 +1194,7 @@ class ManagementConfigPayloadDict(EcosystemPayloadDict):
     data: ManagementConfigDict
 
 
-class ManagementConfigPayload(EcosystemPayload, BaseModel[ManagementConfigPayloadDict]):
+class ManagementConfigPayload(BaseModel[ManagementConfigPayloadDict], EcosystemPayload):
     """Payload to send 'ManagementConfig' from Gaia to Ouranos."""
     data: ManagementConfig
 
@@ -1204,7 +1204,7 @@ class ChaosParametersPayloadDict(EcosystemPayloadDict):
     data: ChaosParametersDict
 
 
-class ChaosParametersPayload(EcosystemPayload, BaseModel[ChaosParametersPayloadDict]):
+class ChaosParametersPayload(BaseModel[ChaosParametersPayloadDict], EcosystemPayload):
     """Payload to send 'ChaosParameters' from Gaia to Ouranos."""
     data: ChaosParameters
 
@@ -1214,7 +1214,7 @@ class NycthemeralCycleConfigPayloadDict(EcosystemPayloadDict):
     data: NycthemeralCycleConfigDict
 
 
-class NycthemeralCycleConfigPayload(EcosystemPayload, BaseModel[NycthemeralCycleConfigPayloadDict]):
+class NycthemeralCycleConfigPayload(BaseModel[NycthemeralCycleConfigPayloadDict], EcosystemPayload):
     """Payload to send 'NycthemeralCycleConfig' from Gaia to Ouranos."""
     data: NycthemeralCycleConfig
 
@@ -1224,7 +1224,7 @@ class ClimateConfigPayloadDict(EcosystemPayloadDict):
     data: list[ClimateConfigDict]
 
 
-class ClimateConfigPayload(EcosystemPayload, BaseModel[ClimateConfigPayloadDict]):
+class ClimateConfigPayload(BaseModel[ClimateConfigPayloadDict], EcosystemPayload):
     """Payload to send a list of 'ClimateConfig' from Gaia to Ouranos."""
     data: list[ClimateConfig] = Field(default_factory=list)
 
@@ -1234,7 +1234,7 @@ class WeatherConfigPayloadDict(EcosystemPayloadDict):
     data: list[WeatherConfigDict]
 
 
-class WeatherConfigPayload(EcosystemPayload, BaseModel[WeatherConfigPayloadDict]):
+class WeatherConfigPayload(BaseModel[WeatherConfigPayloadDict], EcosystemPayload):
     """Payload to send a list of 'WeatherConfig' from Gaia to Ouranos."""
     data: list[WeatherConfig] = Field(default_factory=list)
 
@@ -1244,7 +1244,7 @@ class HardwareConfigPayloadDict(EcosystemPayloadDict):
     data: list[HardwareConfigDict]
 
 
-class HardwareConfigPayload(EcosystemPayload, BaseModel[HardwareConfigPayloadDict]):
+class HardwareConfigPayload(BaseModel[HardwareConfigPayloadDict], EcosystemPayload):
     """Payload to send a list of 'HardwareConfig' from Gaia to Ouranos."""
     data: list[HardwareConfig] = Field(default_factory=list)
 
@@ -1254,7 +1254,7 @@ class PlantConfigPayloadDict(EcosystemPayloadDict):
     data: list[PlantConfigDict]
 
 
-class PlantConfigPayload(EcosystemPayload, BaseModel[PlantConfigPayloadDict]):
+class PlantConfigPayload(BaseModel[PlantConfigPayloadDict], EcosystemPayload):
     """Payload to send a list of 'PlantConfig' from Gaia to Ouranos."""
     data: list[PlantConfig] = Field(default_factory=list)
 
@@ -1265,7 +1265,7 @@ class SensorsDataPayloadDict(EcosystemPayloadDict):
     data: SensorsDataDict
 
 
-class SensorsDataPayload(EcosystemPayload, BaseModel[SensorsDataPayloadDict]):
+class SensorsDataPayload(BaseModel[SensorsDataPayloadDict], EcosystemPayload):
     """Payload to send 'SensorsData' from Gaia to Ouranos."""
     data: SensorsData
 
@@ -1275,7 +1275,7 @@ class NycthemeralCycleInfoPayloadDict(EcosystemPayloadDict):
     data: NycthemeralCycleInfoDict
 
 
-class NycthemeralCycleInfoPayload(EcosystemPayload, BaseModel[NycthemeralCycleInfoPayloadDict]):
+class NycthemeralCycleInfoPayload(BaseModel[NycthemeralCycleInfoPayloadDict], EcosystemPayload):
     """Payload to send 'LightData' from Gaia to Ouranos."""
     data: NycthemeralCycleInfo
 
@@ -1285,7 +1285,7 @@ class LightDataPayloadDict(EcosystemPayloadDict):
     data: LightDataDict
 
 
-class LightDataPayload(EcosystemPayload, BaseModel[LightDataPayloadDict]):
+class LightDataPayload(BaseModel[LightDataPayloadDict], EcosystemPayload):
     """Payload to send 'LightData' from Gaia to Ouranos."""
     data: LightData
 
@@ -1295,7 +1295,7 @@ class ActuatorsDataPayloadDict(EcosystemPayloadDict):
     data: list[ActuatorStateRecord]
 
 
-class ActuatorsDataPayload(EcosystemPayload, BaseModel[ActuatorsDataPayloadDict]):
+class ActuatorsDataPayload(BaseModel[ActuatorsDataPayloadDict], EcosystemPayload):
     """Payload to send 'ActuatorsState' from Gaia to Ouranos."""
     data: list[ActuatorStateRecord] = Field(default_factory=list)
 
@@ -1305,7 +1305,7 @@ class HealthDataPayloadDict(EcosystemPayloadDict):
     data: HealthDataDict
 
 
-class HealthDataPayload(EcosystemPayload, BaseModel[HealthDataPayloadDict]):
+class HealthDataPayload(BaseModel[HealthDataPayloadDict], EcosystemPayload):
     """Payload to send 'HealthRecord' from Gaia to Ouranos."""
     data: HealthData
 
@@ -1462,7 +1462,7 @@ class BufferedSensorsDataPayloadDict(BufferedDataPayloadDict):
     data: list[BufferedSensorRecord]
 
 
-class BufferedSensorsDataPayload(BufferedDataPayload, BaseModel[BufferedSensorsDataPayloadDict]):
+class BufferedSensorsDataPayload(BaseModel[BufferedSensorsDataPayloadDict], BufferedDataPayload):
     """Payload to send a list of 'BufferedSensorRecord' from Gaia to Ouranos.
 
     :arg data: a list of 'BufferedSensorRecord' that could not be sent before.
@@ -1483,7 +1483,7 @@ class BufferedActuatorsStatePayloadDict(BufferedDataPayloadDict):
     data: list[BufferedActuatorRecord]
 
 
-class BufferedActuatorsStatePayload(BufferedDataPayload, BaseModel[BufferedActuatorsStatePayloadDict]):
+class BufferedActuatorsStatePayload(BaseModel[BufferedActuatorsStatePayloadDict], BufferedDataPayload):
     """Payload to send a list of 'BufferedActuatorRecord' from Gaia to Ouranos.
 
     :arg data: a list of 'BufferedActuatorRecord' that could not be sent before.
