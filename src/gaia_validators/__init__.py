@@ -685,16 +685,16 @@ class SerializableMeasure(Measure):
 
 class AnonymousHardwareConfigDict(TypedDict):
     """Cf. related BaseModel."""
-    name: str | MissingValue
-    active: NotRequired[bool | MissingValue]
-    address: str | MissingValue
-    type: HardwareType | MissingValue
-    level: HardwareLevel | MissingValue
-    groups: NotRequired[list[str] | MissingValue]
-    model: str | MissingValue
-    measures: NotRequired[list[MeasureDict] | MissingValue]
-    plants: NotRequired[list[str] | MissingValue]
-    multiplexer_model: NotRequired[str | None | MissingValue]
+    name: str
+    active: NotRequired[bool]
+    address: str
+    type: HardwareType
+    level: HardwareLevel
+    groups: NotRequired[list[str]]
+    model: str
+    measures: NotRequired[list[MeasureDict]]
+    plants: NotRequired[list[str]]
+    multiplexer_model: NotRequired[str | None]
 
 
 class AnonymousHardwareConfig(BaseModel[AnonymousHardwareConfigDict]):
@@ -794,7 +794,7 @@ class AnonymousHardwareConfig(BaseModel[AnonymousHardwareConfigDict]):
 
 class HardwareConfigDict(AnonymousHardwareConfigDict):
     """Cf. related BaseModel."""
-    uid: str | MissingValue
+    uid: str
 
 
 class HardwareConfig(AnonymousHardwareConfig, BaseModel[HardwareConfigDict]):
@@ -807,10 +807,10 @@ class HardwareConfig(AnonymousHardwareConfig, BaseModel[HardwareConfigDict]):
 
 # Plants
 class AnonymousPlantConfigDict(TypedDict):
-    name: str | MissingValue
-    species: NotRequired[str | None | MissingValue]
-    sowing_date: NotRequired[datetime | None | MissingValue]
-    hardware: NotRequired[list[str] | MissingValue]
+    name: str
+    species: NotRequired[str | None]
+    sowing_date: NotRequired[datetime | None]
+    hardware: NotRequired[list[str]]
 
 
 class AnonymousPlantConfig(BaseModel[AnonymousPlantConfigDict]):
@@ -837,7 +837,7 @@ class AnonymousPlantConfig(BaseModel[AnonymousPlantConfigDict]):
 
 
 class PlantConfigDict(AnonymousPlantConfigDict):
-    uid: str | MissingValue
+    uid: str
 
 
 class PlantConfig(AnonymousPlantConfig, BaseModel[PlantConfigDict]):
