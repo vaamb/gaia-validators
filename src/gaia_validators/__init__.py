@@ -445,11 +445,11 @@ class NycthemeralSpanConfig(BaseModel[NycthemeralSpanConfigDict]):
 
 class NycthemeralCycleConfigDict(TypedDict):
     """Cf. related BaseModel."""
-    span: str | NycthemeralSpanMethod
-    lighting: str | LightingMethod
+    span: NycthemeralSpanMethod
+    lighting: LightingMethod
     target: str | None
-    day:  time | None | str
-    night:  time | None | str
+    day:  time
+    night:  time
 
 
 SkyConfigDict = NycthemeralCycleConfigDict
