@@ -13,6 +13,7 @@ from typing import (
     Sequence,
     Type,
     TypedDict,
+    TypeIs,
     TypeVar,
 )
 from uuid import UUID, uuid4
@@ -99,6 +100,10 @@ class Empty:
 empty = Empty()
 
 
+def is_empty(value: Any) -> TypeIs[Empty]:
+    return isinstance(value, Empty)
+
+
 class MissingValue:
     """A sentinel class to mark for missing value in update payloads
 
@@ -127,6 +132,10 @@ class MissingValue:
 
 
 missing = MissingValue()
+
+
+def is_missing(value: Any) -> TypeIs[MissingValue]:
+    return isinstance(value, MissingValue)
 
 
 @dataclass(frozen=True)
