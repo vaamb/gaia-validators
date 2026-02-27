@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, time, timedelta, timezone
 from enum import auto, Enum, IntEnum, IntFlag, StrEnum
+import sys
 from typing import (
     Any,
     Generic,
@@ -10,10 +11,10 @@ from typing import (
     NamedTuple,
     NotRequired,
     overload,
+    Self,
     Sequence,
     Type,
     TypedDict,
-    TypeIs,
     TypeVar,
 )
 from uuid import UUID, uuid4
@@ -24,7 +25,12 @@ from pydantic import (
     SerializerFunctionWrapHandler, SerializationInfo)
 from pydantic.dataclasses import dataclass
 from pydantic_core import core_schema, PydanticUseDefault
-from typing_extensions import Self
+
+
+if sys.version_info >= (3, 13):
+    from typing import TypeIs
+else:
+    from typing_extensions import TypeIs
 
 
 T = TypeVar("T", bound=Enum)
