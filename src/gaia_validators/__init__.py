@@ -892,7 +892,7 @@ class SensorRecord(NamedTuple):
     """
     sensor_uid: str
     measure: str
-    value: float
+    value: float | None
     timestamp: datetime | None = None
 
 
@@ -1328,7 +1328,7 @@ class HealthDataPayload(BaseModel[HealthDataPayloadDict], EcosystemPayload):
 # Actuators payload
 class TurnActuatorPayloadDict(TypedDict):
     """Cf. related BaseModel."""
-    ecosystem_uid: str | None
+    ecosystem_uid: str
     actuator: HardwareType
     group: NotRequired[str]
     mode: ActuatorModePayload
