@@ -892,7 +892,7 @@ class SensorRecord(NamedTuple):
     """
     sensor_uid: str
     measure: str
-    value: float | None
+    value: float
     timestamp: datetime | None = None
 
 
@@ -1349,7 +1349,7 @@ class TurnActuatorPayload(BaseModel[TurnActuatorPayloadDict]):
                 the mode is 'on'.
     :arg countdown: the delay before which to change mode.
     """
-    ecosystem_uid: str | None = None  # can be None if transferred in parallel
+    ecosystem_uid: str
     actuator: HardwareType
     group: str = Field(default_factory=lambda data: data["actuator"].name)
     mode: ActuatorModePayload = ActuatorModePayload.automatic
