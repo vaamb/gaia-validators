@@ -1384,11 +1384,11 @@ class Route(BaseModel[RouteDict]):
 # Crud payload
 class CrudPayloadDict(TypedDict):
     """Cf. related BaseModel."""
-    uuid: str
+    uuid: UUID
     routing: RouteDict
     action: CrudAction
     target: str
-    data: str | dict
+    kwargs: dict[str, Any]
 
 
 class CrudPayload(BaseModel[CrudPayloadDict]):
@@ -1398,13 +1398,13 @@ class CrudPayload(BaseModel[CrudPayloadDict]):
     :arg routing: the type of actuator to change.
     :arg action: the CRUD action that is requested.
     :arg target: the ecosystem configuration target.
-    :arg data: the data to be passed to the ecosystem configuration target.
+    :arg kwargs: the kwargs to be passed to the ecosystem configuration target.
     """
     uuid: UUID = Field(default_factory=uuid4)
     routing: Route
     action: CrudAction
     target: str
-    data: str | dict = Field(default_factory=dict)
+    kwargs: dict = Field(default_factory=dict)
 
     @field_validator("action", mode="before")
     @classmethod
