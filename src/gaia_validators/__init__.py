@@ -7,7 +7,7 @@ from typing import (
     Any,
     Generic,
     ItemsView,
-    Iterable,
+    Iterator,
     NamedTuple,
     NotRequired,
     overload,
@@ -520,7 +520,7 @@ class ActuatorCouple(BaseModel[ActuatorCoupleDict]):
     increase: str | None
     decrease: str | None
 
-    def __iter__(self) -> Iterable[str | None]:
+    def __iter__(self) -> Iterator[str | None]:
         return iter((self.increase, self.decrease))
 
     def items(self) -> ItemsView[str, str | None]:
