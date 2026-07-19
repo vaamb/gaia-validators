@@ -1129,6 +1129,7 @@ class EnginePayloadDict(TypedDict):
     """Cf. related BaseModel."""
     engine_uid: str
     address: str
+    contract_version: int
 
 
 class EnginePayload(BaseModel[EnginePayloadDict]):
@@ -1138,6 +1139,24 @@ class EnginePayload(BaseModel[EnginePayloadDict]):
     """
     engine_uid: str
     address: str
+    contract_version: int = 0
+
+
+class EngineRegistrationAckDict(TypedDict):
+    """Cf. related BaseModel."""
+    host_uid: str | UUID
+    contract_version: int
+    status: Result
+
+
+class EngineRegistrationAck(BaseModel[EngineRegistrationAckDict]):
+    """Contract version
+
+    Used as a payload sent between Gaia and Ouranos.
+    """
+    host_uid: str | UUID
+    contract_version: int = 0
+    status: Result
 
 
 class EcosystemPingDataDict(TypedDict):
