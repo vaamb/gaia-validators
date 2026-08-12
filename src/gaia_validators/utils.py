@@ -44,7 +44,7 @@ def get_sun_times(
     # Hour angle
     def get_hour_angle(angle: float) -> float | None:
         cos_ha = (
-            (sin(TO_RAD * angle) - (sin(TO_RAD * latitude * sin_decl)))
+            (sin(TO_RAD * angle) - (sin(TO_RAD * latitude) * sin_decl))
             / (cos(TO_RAD * latitude) * cos_decl)
         )
         if cos_ha < -1 or cos_ha > 1:
