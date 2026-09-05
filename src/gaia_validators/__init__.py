@@ -1204,7 +1204,7 @@ class EcosystemPayload(BaseModel[EcosystemPayloadDict]):
 
 class PlacesPayloadDict(EcosystemPayloadDict):
     """Payload to send 'Place' from Gaia to Ouranos."""
-    data: list[Place]
+    data: list[PlaceDict]
 
 
 class PlacesPayload(BaseModel[PlacesPayloadDict], EcosystemPayload):
