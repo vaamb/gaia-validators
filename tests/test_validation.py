@@ -5,6 +5,17 @@ from pydantic_core import ValidationError
 import gaia_validators as gv
 
 
+class TestManagement(TestCase):
+    def test_flags_config_sync(self):
+        management_config_dict = gv.ManagementConfig().model_dump()
+
+        for management in gv.ManagementFlags:
+            assert management.name in management_config_dict
+
+        for management in management_config_dict.keys():
+            assert gv.ManagementFlags[management]
+
+
 class TestHardware(TestCase):
     def _get_hardware_cfg(self) -> gv.HardwareConfigDict:
         return {
