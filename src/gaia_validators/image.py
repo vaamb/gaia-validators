@@ -88,7 +88,7 @@ class SerializableImage:
     save = write
 
     @classmethod
-    def deserialize(cls, encoded_image: bytes) -> Self:
+    def deserialize(cls, encoded_image: bytes | bytearray) -> Self:
         """Decode the bytes payload containing an Image and return it
 
         :param encoded_image: An Image encoded into bytes
@@ -255,7 +255,7 @@ class SerializableImagePayload:
         return f"<SerializableImagePayload({self.uid}, elements={len(self.data)})>"
 
     @classmethod
-    def deserialize(cls, encoded_payload: bytes) -> Self:
+    def deserialize(cls, encoded_payload: bytes | bytearray) -> Self:
         """Decode the bytes payload containing an Image payload and return it
 
         :param encoded_payload: An Image encoded into bytes
