@@ -384,16 +384,16 @@ class ChaosConfig(BaseModel[ChaosConfigDict]):
     """Chaos parameters.
 
     :arg frequency: the average delay between two chaotic events. If set to 0,
-                     no chaotic event will occur.
+                    no chaotic event will occur.
     :arg duration: the duration in day of one chaotic event.
-    :arg Intensity: the intensity of a chaotic event. It influences the
-                     temperature, humidity, light and watering levels.
+    :arg intensity: the intensity of a chaotic event, as a percentage. It influences
+                    the climatic variables.
 
     Used by Gaia ecosystems configuration file.
     """
     frequency: int = Field(default=0, ge=0)
-    duration: int = Field(default=0, ge=0)
-    intensity: float = Field(default=0.0, ge=0.0)
+    duration: int = Field(default=1, ge=1)
+    intensity: float = Field(default=0.0, ge=0.0, le=1.0)
 
 
 class TimeWindowDict(TypedDict):
