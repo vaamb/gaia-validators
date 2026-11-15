@@ -4,6 +4,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from enum import auto, Enum, IntEnum, IntFlag, StrEnum
 import sys
 from typing import (
+    Annotated,
     Any,
     Generic,
     ItemsView,
@@ -14,15 +15,16 @@ from typing import (
     Self,
     Sequence,
     Type,
+    TypeAlias,
     TypedDict,
     TypeVar,
 )
 from uuid import UUID, uuid4
 
 from pydantic import (
-    BaseModel as _BaseModel, ConfigDict, Field, field_serializer, field_validator,
-    GetCoreSchemaHandler, model_serializer, model_validator,
-    SerializerFunctionWrapHandler, SerializationInfo)
+    BaseModel as _BaseModel, BeforeValidator, ConfigDict, Field, field_serializer,
+    field_validator, GetCoreSchemaHandler, model_serializer, model_validator,
+    SerializerFunctionWrapHandler, SerializationInfo, StringConstraints)
 from pydantic.dataclasses import dataclass
 from pydantic_core import core_schema, PydanticUseDefault
 
@@ -32,6 +34,8 @@ if sys.version_info >= (3, 13):
 else:
     from typing_extensions import TypeIs
 
+
+PARAMETER_NAME_MAX_LENGTH: int = 24
 
 T = TypeVar("T", bound=Enum)
 DictT = TypeVar("DictT")
@@ -497,18 +501,38 @@ class NycthemeralCycleConfig(BaseModel[NycthemeralCycleConfigDict], NycthemeralS
 SkyConfig = NycthemeralCycleConfig
 
 
-class ClimateParameter(StrEnum):
-    """Climate parameters that can be controlled by Gaia ecosystem subroutines.
+def _format_parameter_name(value: Any) -> Any:
+    if isinstance(value, str):
+        value = value.lower()
+        value.replace(" ", "_")
+    return value
 
-    Climate parameters allow to control the environment of a Gaia ecosystem on
-    the long-term scale.
 
-    Used by Gaia and Ouranos.
-    """
-    temperature = "temperature"
-    humidity = "humidity"
-    light = "light"
-    wind = "wind"
+EnvironmentParameter = Annotated[
+    str,
+    BeforeValidator(_format_parameter_name),
+    StringConstraints(
+        pattern=r"^[a-z][a-z0-9_]*$",
+        min_length=2,
+        max_length=PARAMETER_NAME_MAX_LENGTH,
+    ),
+]
+"""The name of a climate or a weather parameter.
+
+Only the format is checked. Whether an ecosystem can sense and act on it is for 
+Gaia to define.
+
+
+"""
+
+
+ClimateParameter: TypeAlias = EnvironmentParameter
+"""Climate parameters that can be controlled by Gaia ecosystem subroutines.
+Climate parameters allow to control the environment of a Gaia ecosystem on
+the long-term scale.
+    
+Used by Gaia and Ouranos.
+"""
 
 
 class ActuatorCoupleDict(TypedDict):
@@ -596,24 +620,16 @@ class ClimateConfig(BaseModel[ClimateConfigDict], AnonymousClimateConfig):
     """
     parameter: ClimateParameter
 
-    @field_validator("parameter", mode="before")
-    @classmethod
-    def parse_parameter(cls, value):
-        return safe_enum_from_name(ClimateParameter, value)
 
+WeatherParameter: TypeAlias = EnvironmentParameter
+"""Weather parameters that can be controlled by Gaia ecosystem subroutines.
 
-class WeatherParameter(StrEnum):
-    """Weather parameters that can be controlled by Gaia ecosystem subroutines.
+Weather parameters allow to control the environment of a Gaia ecosystem on
+the short-term scale. They are typically used to simulate short-term
+disturbing events.
 
-    Weather parameters allow to control the environment of a Gaia ecosystem on
-    the short-term scale. They are typically used to simulate short-term
-    disturbing events.
-
-    Used by Gaia and Ouranos.
-    """
-    rain = "rain"
-    fog = "fog"
-    wind_gust = "wind_gust"
+Used by Gaia and Ouranos.
+"""
 
 
 class AnonymousWeatherConfigDict(TypedDict):
@@ -651,11 +667,6 @@ class WeatherConfig(BaseModel[WeatherConfigDict], AnonymousWeatherConfig):
     Used by Ouranos.
     """
     parameter: WeatherParameter
-
-    @field_validator("parameter", mode="before")
-    @classmethod
-    def parse_parameter(cls, value):
-        return safe_enum_from_name(WeatherParameter, value)
 
 
 # Hardware
