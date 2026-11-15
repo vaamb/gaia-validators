@@ -1,15 +1,53 @@
 from datetime import date, datetime, time, timedelta, timezone
 from math import acos, asin, cos, pi, sin
 
+from typing import overload
+
 from pydantic.json_schema import models_json_schema
 
-import gaia_validators as gv
+from gaia_validators import payloads
+from gaia_validators.models import (
+    AnonymousClimateConfigDict, AnonymousHardwareConfigDict, AnonymousPlantConfigDict,
+    AnonymousWeatherConfigDict, ClimateConfigDict, Coordinates, HardwareConfigDict, PlantConfigDict,
+    SunTimes, WeatherConfigDict,
+)
+
+@overload
+def to_identified(config: AnonymousHardwareConfigDict, identifier: dict[str, str]) -> HardwareConfigDict: ...
+
+@overload
+def to_identified(config: AnonymousClimateConfigDict, identifier: dict[str, str]) -> ClimateConfigDict: ...
+
+@overload
+def to_identified(config: AnonymousPlantConfigDict, identifier: dict[str, str]) -> PlantConfigDict: ...
+
+@overload
+def to_identified(config: AnonymousWeatherConfigDict, identifier: dict[str, str]) -> WeatherConfigDict: ...
+
+def to_identified(config: dict, identifier: dict[str, str]) -> dict:
+    return {**identifier, **config}
+
+
+@overload
+def to_anonymous(config: HardwareConfigDict, identifier: str) -> AnonymousHardwareConfigDict: ...
+
+@overload
+def to_anonymous(config: ClimateConfigDict, identifier: str) -> AnonymousClimateConfigDict: ...
+
+@overload
+def to_anonymous(config: PlantConfigDict, identifier: str) -> AnonymousPlantConfigDict: ...
+
+@overload
+def to_anonymous(config: WeatherConfigDict, identifier: str) -> AnonymousWeatherConfigDict: ...
+
+def to_anonymous(config: dict, identifier: str) -> dict:
+    return {k: v for k, v in config.items() if k != identifier}
 
 
 def get_sun_times(
-        coordinates: gv.Coordinates,
+        coordinates: Coordinates,
         day: date | None = None,
-) -> gv.SunTimes:
+) -> SunTimes:
     latitude = coordinates.latitude
     longitude = coordinates.longitude
     TO_RAD = pi / 180.0
@@ -85,7 +123,7 @@ def get_sun_times(
         dt = utc_dt.astimezone()
         return dt.time()
 
-    return gv.SunTimes.model_validate(
+    return SunTimes.model_validate(
         {
             "datestamp": day,
             **{
@@ -99,31 +137,31 @@ def get_sun_times(
 def generate_json_schemas() -> dict:
     _, schemas = models_json_schema([
         # Engine payload
-        (gv.EnginePingPayload, "validation"),
-        (gv.PlacesPayload, "validation"),
+        (payloads.EnginePingPayload, "validation"),
+        (payloads.PlacesPayload, "validation"),
         # Ecosystem config payloads
-        (gv.BaseInfoConfigPayload, "validation"),
-        (gv.ManagementConfigPayload, "validation"),
-        (gv.ChaosParametersPayload, "validation"),
-        (gv.NycthemeralCycleConfigPayload, "validation"),
-        (gv.ClimateConfigPayload, "validation"),
-        (gv.WeatherConfigPayload, "validation"),
-        (gv.HardwareConfigPayload, "validation"),
-        (gv.PlantConfigPayload, "validation"),
+        (payloads.BaseInfoConfigPayload, "validation"),
+        (payloads.ManagementConfigPayload, "validation"),
+        (payloads.ChaosParametersPayload, "validation"),
+        (payloads.NycthemeralCycleConfigPayload, "validation"),
+        (payloads.ClimateConfigPayload, "validation"),
+        (payloads.WeatherConfigPayload, "validation"),
+        (payloads.HardwareConfigPayload, "validation"),
+        (payloads.PlantConfigPayload, "validation"),
         # Data payloads
-        (gv.SensorsDataPayload, "validation"),
-        (gv.NycthemeralCycleInfoPayload, "validation"),
-        (gv.LightDataPayload, "validation"),
-        (gv.ActuatorsDataPayload, "validation"),
-        (gv.HealthDataPayload, "validation"),
+        (payloads.SensorsDataPayload, "validation"),
+        (payloads.NycthemeralCycleInfoPayload, "validation"),
+        (payloads.LightDataPayload, "validation"),
+        (payloads.ActuatorsDataPayload, "validation"),
+        (payloads.HealthDataPayload, "validation"),
         # Interaction payloads
-        (gv.TurnActuatorPayload, "validation"),
-        (gv.CrudPayload, "validation"),
-        (gv.RequestResult, "validation"),
+        (payloads.TurnActuatorPayload, "validation"),
+        (payloads.CrudPayload, "validation"),
+        (payloads.RequestResult, "validation"),
         # Buffered data payload
-        (gv.BufferedDataPayload, "validation"),
+        (payloads.BufferedDataPayload, "validation"),
         # BufferedHealthRecordPayload = BufferedSensorsDataPayload
-        (gv.BufferedActuatorsStatePayload, "validation"),
+        (payloads.BufferedActuatorsStatePayload, "validation"),
     ])
 
     return schemas
