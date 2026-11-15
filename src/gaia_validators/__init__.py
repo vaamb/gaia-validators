@@ -513,7 +513,7 @@ EnvironmentParameter = Annotated[
     BeforeValidator(_format_parameter_name),
     StringConstraints(
         pattern=r"^[a-z][a-z0-9_]*$",
-        min_length=4,
+        min_length=2,
         max_length=PARAMETER_NAME_MAX_LENGTH,
     ),
 ]

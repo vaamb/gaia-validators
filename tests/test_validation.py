@@ -134,7 +134,7 @@ class TestClimate(TestCase):
         self.assertEqual(gv.ClimateConfig(**climate_cfg).parameter, "ph")
 
         too_long = "a" * (gv.PARAMETER_NAME_MAX_LENGTH + 1)
-        too_short = "aaa"
+        too_short = "a"
         for invalid_name in ("", "water temperature", "2nd_probe", "_ph", too_short, too_long):
             climate_cfg["parameter"] = invalid_name
             with self.assertRaises(ValidationError, msg=invalid_name):
