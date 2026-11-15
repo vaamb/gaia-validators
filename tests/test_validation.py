@@ -97,7 +97,8 @@ class TestClimate(TestCase):
     def test_base(self):
         climate = gv.ClimateConfig(**self._get_climate_cfg())
 
-        self.assertIs(climate.parameter, gv.ClimateParameter.temperature)
+        self.assertEqual(climate.parameter, "temperature")
+        self.assertIs(type(climate.parameter), str)
         self.assertEqual(climate.day, 25.0)
         self.assertEqual(climate.night, 20.0)
         self.assertEqual(climate.hysteresis, 2.0)
@@ -121,6 +122,27 @@ class TestClimate(TestCase):
         self.assertEqual(climate.linked_actuators, None)
         self.assertEqual(climate.linked_measure, None)
 
+    def test_parameter_name(self):
+        climate_cfg = self._get_climate_cfg()
+
+        # Climate parameters can now be any str
+        climate_cfg["parameter"] = "water_temperature"
+        self.assertEqual(gv.ClimateConfig(**climate_cfg).parameter, "water_temperature")
+
+        # Names are lowercased, so "pH" and "ph" are the same parameter
+        climate_cfg["parameter"] = "pH"
+        self.assertEqual(gv.ClimateConfig(**climate_cfg).parameter, "ph")
+
+        too_long = "a" * (gv.PARAMETER_NAME_MAX_LENGTH + 1)
+        too_short = "aaa"
+        for invalid_name in ("", "water temperature", "2nd_probe", "_ph", too_short, too_long):
+            climate_cfg["parameter"] = invalid_name
+            with self.assertRaises(ValidationError, msg=invalid_name):
+                gv.ClimateConfig(**climate_cfg)
+
+        climate_cfg["parameter"] = "a" * gv.PARAMETER_NAME_MAX_LENGTH
+        gv.ClimateConfig(**climate_cfg)
+
 
 class TestWeather(TestCase):
     def _get_weather_cfg(self) -> gv.WeatherConfigDict:
@@ -135,7 +157,8 @@ class TestWeather(TestCase):
     def test_base(self):
         weather = gv.WeatherConfig(**self._get_weather_cfg())
 
-        self.assertIs(weather.parameter, gv.WeatherParameter.rain)
+        self.assertEqual(weather.parameter, "rain")
+        self.assertIs(type(weather.parameter), str)
         self.assertEqual(weather.pattern, "* * * * *")
         self.assertEqual(weather.duration, 300.0)
         self.assertEqual(weather.level, 75.0)
@@ -166,6 +189,17 @@ class TestWeather(TestCase):
         gv.WeatherConfig(**weather_cfg)
 
         weather_cfg["pattern"] = "*-8 * * * *"
+        with self.assertRaises(ValidationError):
+            gv.WeatherConfig(**weather_cfg)
+
+    def test_parameter_name(self):
+        weather_cfg = self._get_weather_cfg()
+
+        # Weather parameters can now be any str
+        weather_cfg["parameter"] = "Feeding"
+        self.assertEqual(gv.WeatherConfig(**weather_cfg).parameter, "feeding")
+
+        weather_cfg["parameter"] = "wind gust"
         with self.assertRaises(ValidationError):
             gv.WeatherConfig(**weather_cfg)
 
